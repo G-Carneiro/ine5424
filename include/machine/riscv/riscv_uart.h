@@ -24,16 +24,13 @@ private:
 
     // UART registers offsets from UART_BASE
     enum {
-        DIV_LSB         = 0,
         TXD             = 0,
-        RXD             = 0,
-        IER             = 1,
-        DIV_MSB         = 1,
-        FCR             = 2,
-        ISR             = 2,
-        LCR             = 3,
-        MCR             = 4,
-        LSR             = 5
+        RXD             = 4,
+        TXC             = 8,
+        RXC             = 12,
+        IE              = 16,
+        IP              = 20,
+        DIV             = 24
     };
 
     // Useful bits from multiple registers
@@ -113,10 +110,10 @@ public:
         *stop_bits = (Reg32(reg(LCR) & STOP_BITS_MASK) >> STOP_BITS_MASK) + 1;
     }
 
-    Reg8 rxd() { 
+    Reg32 rxd() {
         return reg(RXD);
     }
-    void txd(Reg8 c) { 
+    void txd(Reg32 c) {
         reg(TXD) = c;
     }
 
@@ -132,6 +129,10 @@ public:
     
     bool txd_empty() { 
         return (reg(LSR) & TEMPTY_REG); 
+    }
+
+    bool txd_full() {
+        return (reg(TXD) >> 31);
     }
 
     bool busy() {
@@ -171,7 +172,7 @@ public:
 private:
     static void init() {}
 
-    static volatile CPU::Reg8 & reg(unsigned int o) { return reinterpret_cast<volatile CPU::Reg8 *>(Memory_Map::UART_BASE)[o / sizeof(CPU::Reg8)]; }
+    static volatile CPU::Reg32 & reg(unsigned int o) { return reinterpret_cast<volatile CPU::Reg32 *>(Memory_Map::UART_BASE)[o / sizeof(CPU::Reg32)]; }
 };
 
 __END_SYS
