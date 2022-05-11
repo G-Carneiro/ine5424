@@ -5,7 +5,7 @@
 using namespace EPOS;
 OStream cout;
 
-#define WAIT_TIME 500
+#define WAIT_TIME 4999
 
 const unsigned int thread_num = 5;
 Thread * t[thread_num];
