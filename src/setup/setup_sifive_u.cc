@@ -48,7 +48,7 @@ public:
 private:
     void say_hi();
     void call_next();
-    
+
     void panic() { Machine::panic(); }
 
 private:
