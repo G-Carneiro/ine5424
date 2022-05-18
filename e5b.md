@@ -6,3 +6,7 @@
 - Feitas também as devidas alterações para roda com sifive_u.
 - Arquivos RV64 criados.
 - Arquivo de teste em _app/pmu_test/_.
+  - `PMU::read(0)` para ler `cycle`.
+  - `PMU::read(1)` para ler `time`.
+  - `PMU::read(2)` para ler `instret`.
+  - `PMU::read(3)` para ler `mhpmcounter3`.
