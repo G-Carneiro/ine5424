@@ -125,7 +125,6 @@ private:
             ASM("csrw %0, mhpmcounter3\n\t" : : "r"(low));
             ASM("csrw %0, mhpmcounter3h\n\t" : : "r"(high));
         }
-
     }
 
 private:

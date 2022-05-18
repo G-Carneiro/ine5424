@@ -1,0 +1,7 @@
+- Leitura de `cycle` e `instret` aparetemente funcionando.
+- Ao tentar ler `time` recebe-se uma exceção de operação inválida.
+- Leitura de `mhpmcounterX` parece funcionar, mas não está implementado no qemu.
+  - Como fazer código `ASM` genérico para chamar um determinado contador e/ou csr reg?
+- Machine Hardware Performance Monitor Event Register: mapeamento feito.
+- Feitas também as devidas alterações para roda com sifive_u.
+- Arquivo de teste em _app/pmu_test/_.
