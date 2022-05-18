@@ -4,4 +4,5 @@
   - Como fazer código `ASM` genérico para chamar um determinado contador e/ou csr reg?
 - Machine Hardware Performance Monitor Event Register: mapeamento feito.
 - Feitas também as devidas alterações para roda com sifive_u.
+- Arquivos RV64 criados.
 - Arquivo de teste em _app/pmu_test/_.
