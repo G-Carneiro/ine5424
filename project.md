@@ -1,0 +1,24 @@
+- No RV64 será necessário usar uma flag para não gerar double (`F`), caso contrário teremos Reg128.
+- RV64 possui as mesmas instruções do RV32.
+  - Compressão do RV64 vai para 16 bits.
+- Arquitetura não é burra.
+  - Não irá gerar fence em todos os lugares.
+  - Compilador irá reordenar instruções.
+  - Fence (não usar em tudo) será usado quando:
+    - Mexer um lock de multicore.
+    - Trocar MMU: cache inválida.
+    - Tudo que estiver pendente (precisar ser commitado na memória).
+- CSR diferentes modos precisarão de diferentes ASM, mesmo a instrução e registradores sendo os mesmos.
+  - Trocar S por M. Para modo Machine.
+- mhartid = cpu::id.
+- mpriv = priv (no qemu).
+- RV não pode alterar memória de aplicação (flag SUM do mstatus).
+- mstatus:
+  - TW: avisa quando um core é acordado.
+  - TSR: 
+- Interrupções serão feitas, de fato, em software (confirmar).
+- mie e mip:
+  - se desligar interrupções em mstatus desabilitará TODAS interrupções.
+  - para desabilitar interrupções específicas usar flags nesses CSRs.
+- Slide Interrupt Handler:
+  - MIE se refere ao bit em mstatus.
