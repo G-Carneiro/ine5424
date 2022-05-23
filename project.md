@@ -22,3 +22,6 @@
   - para desabilitar interrupções específicas usar flags nesses CSRs.
 - Slide Interrupt Handler:
   - MIE se refere ao bit em mstatus.
+
+
+- Se o sistema estiver dando error chamar `readelf` e ver se tem mais de duas seções.
