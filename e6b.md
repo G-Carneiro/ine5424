@@ -1,0 +1,2 @@
+- Usar `attach` para alocar FLASH.
+  - Olhar arquivo `init_system.cc` como base.
