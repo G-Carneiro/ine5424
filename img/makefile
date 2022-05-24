@@ -68,7 +68,7 @@ run:		all run1
 run1:		eposcfg
 ifneq ($(STIME),0)
 ifeq ($(NODES),1)
-		timeout --foreground --kill-after=2s --signal=9 $(STIME)s $(EMULATOR)$(IMAGE) | $(TEE) $(OUTPUT)
+		timeout --foreground --kill-after=2s --signal=9 $(STIME)s $(EMULATOR) $(IMAGE) | $(TEE) $(OUTPUT)
 else
 		$(TERM) "timeout --foreground --kill-after=2s --signal=9 $(STIME)s $(EMULATOR)$(IMAGE) $(NETWORK) | $(TEE) $(OUTPUT) \
 		&& $(TCPDUMP) $(APPLICATION).pcap > $(APPLICATION).net \

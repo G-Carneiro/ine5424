@@ -28,10 +28,10 @@ void Machine::reboot()
         reset[0] = 0x5555;
 #endif
 
-#if defined(__sifive_u__) && defined(__rv32__)
-        CPU::Reg * reset = reinterpret_cast<CPU::Reg *>(Memory_Map::TEST_BASE);
-        reset[0] = 0x5555;
-#endif
+//#if defined(__sifive_u__) && defined(__rv32__)
+//        CPU::Reg * reset = reinterpret_cast<CPU::Reg *>(Memory_Map::TEST_BASE);
+//        reset[0] = 0x5555;
+//#endif
 
         while(true);
     } else {
@@ -48,10 +48,10 @@ void Machine::poweroff()
         reset[0] = 0x5555;
 #endif
 
-#if defined(__sifive_u__) && defined(__rv32__)
-        CPU::Reg * reset = reinterpret_cast<CPU::Reg *>(Memory_Map::TEST_BASE);
-        reset[0] = 0x5555;
-#endif
+//#if defined(__sifive_u__) && defined(__rv32__)
+//        CPU::Reg * reset = reinterpret_cast<CPU::Reg *>(Memory_Map::TEST_BASE);
+//        reset[0] = 0x5555;
+//#endif
 
     while(true);
 }
