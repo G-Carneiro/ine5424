@@ -179,6 +179,7 @@ namespace EPOS {
 #define __riscv__
 #define __TSC_H                 __HEADER_ARCH(tsc)
 #define __PMU_H                 __HEADER_ARCH(pmu)
+#define __FLASH_H               __HEADER_MACH(flash)
 
 #define __UART_H                __HEADER_MACH(uart)
 #endif

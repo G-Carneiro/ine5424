@@ -16,6 +16,11 @@ void Machine::init()
 {
     db<Init, Machine>(TRC) << "Machine::init()" << endl;
 
+#ifdef __FLASH_H
+    if(CPU::id() == 0)
+        if (Traits<Flash>::enabled)
+            Flash::init();
+#endif
     if(Traits<IC>::enabled)
         IC::init();
 

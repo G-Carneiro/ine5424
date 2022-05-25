@@ -34,6 +34,7 @@ public:
         CLINT_BASE      = 0x02000000, // SiFive CLINT
         TIMER_BASE      = 0x02004000, // CLINT Timer
         PLIIC_CPU_BASE  = 0x0c000000, // SiFive PLIC
+        FLASH_BASE      = 0x20000000,   // Virt / SiFive-U Flash
 
         // Physical Memory at Boot
         BOOT            = Traits<Machine>::BOOT,
