@@ -28,12 +28,17 @@ public:
         FREE_TOP        = BOOT_STACK,
 
         // Memory-mapped devices
-        TEST_BASE       = 0x00100000, // SiFive test engine
-        RTC_BASE        = 0x00101000, // Goldfish RTC
-        UART0_BASE      = 0x10010000, // NS16550A UART
-        CLINT_BASE      = 0x02000000, // SiFive CLINT
-        TIMER_BASE      = 0x02004000, // CLINT Timer
-        PLIIC_CPU_BASE  = 0x0c000000, // SiFive PLIC
+        BIOS_BASE       = 0x00001000,   // BIOS ROM
+        TEST_BASE       = 0x00100000,   // SiFive test engine
+        RTC_BASE        = 0x00101000,   // Goldfish RTC
+        UART0_BASE      = 0x10010000,   // SiFive UART
+        CLINT_BASE      = 0x02000000,   // SiFive CLINT
+        TIMER_BASE      = 0x02004000,   // CLINT Timer
+        PLIIC_CPU_BASE  = 0x0c000000,   // SiFive PLIC
+        PRCI_BASE       = 0x10000000,   // SiFive-U Power, Reset, Clock, Interrupt
+        GPIO_BASE       = 0x10060000,   // SiFive-U GPIO
+        OTP_BASE        = 0x10070000,   // SiFive-U OTP
+        ETH_BASE        = 0x10090000,   // SiFive-U Ethernet
         FLASH_BASE      = 0x20000000,   // Virt / SiFive-U Flash
 
         // Physical Memory at Boot
