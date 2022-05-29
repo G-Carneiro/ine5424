@@ -26,6 +26,8 @@ Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
   Priv <- xPP
   ```
 
+[//]: # (TODO: Priv é bit de quem?)
+
 #### Machine Cause (mcause)
 
 - Indica qual evento que causou o trap.
@@ -71,6 +73,8 @@ Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
 - Quando resetado, vai para 0.
 - Interrupções de tempo sempre vão para o modo Machine, a não ser quando delegados ao modo Supervisor com o uso do `mideleg`. O mesmo ocorre com as exceções.
 
+[//]: # (TODO: manual cookbook com contradição)
+
 #### Machine Timer Compare (mtimecmp)
 
 - Usado em conjunto com `mtime`.
@@ -107,6 +111,8 @@ Lembre-se de que a **tabela de vetores** contém um ***opcode*** que é uma inst
 ## RV32 vs RV64 (no CLINT)
 
 A única diferença é referente ao `mstatus`, onde o registrador passa de 32 para 64 bits.
+
+[//]: # (TODO: somente precisamos implementar o bit SD ou os demais tbm?)
 
 ## Guia de Siglas (não colocar na wiki)
 
