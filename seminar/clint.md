@@ -8,7 +8,7 @@ Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
 
 ### Registradores da Máquina
 
-#### mstatus
+#### Machine Status (mstatus)
 
 - Acompanha e controla o estado operacional atual do hart.
 - `x = [M | S | U]`
@@ -28,7 +28,13 @@ Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
 
 #### mcause
 
-#### mip e mie
+#### Machine Interrupt Pending (mip)
+
+- Indica quais interrupções estão pendentes.
+
+#### Machine Interrupt Enable (mie)
+
+- Indica quais interrupções estão habilitadas.
 
 #### mtvec
 
