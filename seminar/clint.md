@@ -26,7 +26,12 @@ Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
   Priv <- xPP
   ```
 
-#### mcause
+#### Machine Cause (mcause)
+
+- Indica qual evento que causou o trap.
+- Caso a causa seja uma interrupção o bit `Interrupt` é setado.
+- Se for gerada mais de uma exceção síncrona, a tabela de prioridades é utilizada.
+- 
 
 #### Machine Interrupt Pending (mip)
 
@@ -38,7 +43,17 @@ Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
 
 #### mtvec
 
-#### medeleg e mideleg
+- Contém o endereço base da tabela de vetores de interrupção e a configuração do modo de interrupção.
+- Todas as exceções síncronas usam para tratamento de exceções.
+- Sempre deve ser implementado, mas se poderá ser escrito varia com a implementação. 
+
+#### Machine Exception Delegation (medeleg)
+
+- Delega exceções ao modo supervisor.
+
+#### Machine Interrupt Delegation (mideleg)
+
+- Delega interrupções ao modo supervisor.
 
 ### Comuns ao CLINT e CLIC
 
