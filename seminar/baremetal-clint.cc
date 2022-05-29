@@ -146,7 +146,7 @@ void timer_handler() {
     uintptr_t mtime, mip;
     uintptr_t int_bit = read_csr(mip);
 
-    printf ("Timer Handler! Interrupt ID: %d, Count: %d\n", code, ++timer_isr_counter);
+    uart.put("Timer Handler!\n");
 
     /* set our next interval */
     SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
@@ -224,17 +224,16 @@ int main() {
     interrupt_global_enable();
 
     /* Allow timer interrupt to fire before we continue, running at ~5s intervals */
-    printf ("Waiting for 5s Timer interrupt to fire...\n");  // have to test if printf works 
-                                                             // (my guess is it doesn't)
+    uart.put("Waiting for 5s Timer interrupt to fire...\n");
     while (!timer_isr_counter);
     interrupt_timer_disable();
 
     /* write msip and display message that s/w handler was hit */
     fflush(stdout);
-    printf ("\nSetting software interrupt...\n");
+    uart.put("\nSetting software interrupt...\n");
     write_word(MSIP_BASE_ADDR(read_csr(mhartid)), 0x1);
 
-    printf ("Thanks!  Now exiting...\n");
+    uart.put("Thanks!  Now exiting...\n");
 
    exit (0);
 }
@@ -254,7 +253,7 @@ void __attribute__((weak, interrupt)) software_handler (void) {
     uintptr_t mip, code = MCAUSE_CODE(read_csr(mcause));
     uintptr_t int_bit = read_csr(mip);
 
-    printf ("Software Handler!  Interrupt ID: %d\n", code);
+    uart.put("Software Handler!\n");
 
     /* Clear Software Pending Bit which clears mip.msip bit */
     write_word(MSIP_BASE_ADDR(read_csr(mhartid)), 0x0);
@@ -266,7 +265,7 @@ void __attribute__((weak, interrupt)) timer_handler (void) {
     uintptr_t mtime, mip;
     uintptr_t int_bit = read_csr(mip);
 
-    printf ("Timer Handler! Interrupt ID: %d, Count: %d\n", code, ++timer_isr_counter);
+    uart.put("Timer Handler!\n");
 
     /* set our next interval */
     SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
@@ -278,7 +277,7 @@ void __attribute__((weak, interrupt)) button_handler (void) {
     uintptr_t mip, code = MCAUSE_CODE(read_csr(mcause));
     uintptr_t int_bit = ((1 << code) & read_csr(mip));
 
-    printf ("Button Handler! Interrupt ID: %d\n", code);
+    uart.put("Button Handler!\n");
 
     /* wait for user to release button */
     while ((read_csr(mip) & int_bit));
@@ -296,8 +295,7 @@ void __attribute__((weak)) default_exception_handler(void) {
     uintptr_t mtval = read_csr(mtval);
     uintptr_t code = MCAUSE_CODE(mcause);
 
-    printf ("Exception Hit! mcause: 0x%08x, mepc: 0x%08x, mtval: 0x%08x\n", mcause, mepc, mtval);
-    printf ("Mcause Exception Code: 0x%08x\n", code);
+    uart.put("Exception Hit!\n");
     printf("Now Exiting...\n");
 
     /* Exit here using non-zero return code */
