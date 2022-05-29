@@ -31,7 +31,6 @@ Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
 - Indica qual evento que causou o trap.
 - Caso a causa seja uma interrupção o bit `Interrupt` é setado.
 - Se for gerada mais de uma exceção síncrona, a tabela de prioridades é utilizada.
-- 
 
 #### Machine Interrupt Pending (mip)
 
@@ -57,11 +56,26 @@ Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
 
 ### Comuns ao CLINT e CLIC
 
-#### msip
+#### Machine Software Interrupt Pending (msip)
 
-#### mtime
+- Cada CPU possui seu registrador.
+- Interrupt ID #3.
+- Em sistemas com várias CPUs, uma CPU pode escrever no `msip` de qualquer outra.
+  - Isso permite uma comunicação eficiente entre processadores.
 
-#### mtimecmp
+#### Machine Timer (mtime)
+
+- Contém o número de ciclos a partir de `RTCCLK` (CPU real time clock).
+- Gera interrupção sempre que `mtime >= mtimecmp`, a qual é indicada em `mip.mtip`.
+- Existe um único `mtime`, independente da quantidade de CPUs.
+- Quando resetado, vai para 0.
+- Interrupções de tempo sempre vão para o modo Machine, a não ser quando delegados ao modo Supervisor com o uso do `mideleg`. O mesmo ocorre com as exceções.
+
+#### Machine Timer Compare (mtimecmp)
+
+- Usado em conjunto com `mtime`.
+- Não é resetado, diferente de `mtime`.
+- Cada CPU possui seu próprio registrador.
 
 ## Modos de Operação
 
@@ -79,7 +93,7 @@ um mínimo de **64 bytes no modo vetorizado**.
 ### Modo Direto
 
 O **modo direto** significa que todas as interrupções têm armadilha para o mesmo tratador, e não há uma tabela de vetores implementada.
-É a responsibilidade do **software** executar código para descobrir qual interrupção ocorreu.
+É a responsabilidade do **software** executar código para descobrir qual interrupção ocorreu.
 
 O **tratador em software** no **modo direto**, deve primeiro ler ***mcause.interrupt*** para determinar se uma **interrupção** ou **exceção** ocorreu,
 para então decidir oque fazer baseado no valor de ***mcause.code** que contém o código de interrupção ou exceção respectivo.
@@ -96,6 +110,8 @@ Lembre-se de que a **tabela de vetores** contém um ***opcode*** que é uma inst
 
 Colocar oq muda no clint ao mudar de 32 para 64.
 
-
-- HART: hardware threads
-- WARL: 
+- CSRs: Control and Status Registers.
+- HART: hardware threads.
+- WARL: Write Any Values, Reads Legal Values.
+- WLRL: Write/Read Only Legal Values.
+- WPRI: Reserved Writes Preserve Values, Reads Ignore Values.
