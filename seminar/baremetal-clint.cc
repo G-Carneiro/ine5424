@@ -64,7 +64,7 @@
 #define __riscv_xlen 64
 
 // IN 32 BITS this register is 32 bit long, in 64 it is 64 bit long
-#define MCAUSE_INTR                         0x8000000000000000UL
+#define MCAUSE_INT_MASK                     0x8000000000000000UL
 #define MCAUSE_CAUSE                        0x7FFFFFFFFFFFFFFFUL
 #define MCAUSE_CODE(cause)                  (cause & MCAUSE_CAUSE)
 
@@ -127,9 +127,19 @@ void __attribute__((weak, interrupt)) external_handler (void);
 void __attribute__((weak, interrupt)) default_vector_handler (void);
 void __attribute__((weak)) default_exception_handler(void);
 
+void default_interruption_handler() {
+    unsigned long mcause_value = read_csr(mcause);
+
+    if (mcause_value & MCAUSE_INT_MASK) {
+        // branch to interrupt handler
+    } else {
+        // branch to exception handler 
+    }
+}
 
 struct uart {
     void put(char* in) {
+        int pos = 0;
         char tmp = *in;
         while(tmp != '\0'){
             asm volatile ("lui t0, %0 \n"
@@ -138,14 +148,16 @@ struct uart {
                           "sw t1, 0(t0) \n"
                           :
                           : "r"(UART_UPPER_ADDR), "r"(tmp));
-        } 
+            tmp = in[pos];
+        }
     }
 } uart;
 
 /* Main - Setup CLINT interrupt handling and describe how to trigger interrupt */
 int main() {
 
-    uint32_t i, mode = MTVEC_MODE_CLINT_VECTORED;
+    // define direct mode
+    uint32_t i, mode = MTVEC_MODE_CLINT_DIRECT;
     uintptr_t mtvec_base;
     // struct metal_gpio *ggpio;
 
@@ -157,50 +169,6 @@ int main() {
      * mtvec.mode field is bit[0] for designs with CLINT, or [1:0] using CLIC */
     mtvec_base = (uintptr_t)&__mtvec_clint_vector_table;
     write_csr (mtvec, (mtvec_base | mode));
-
-#if GPIO_PRESENT
-
-    /* Here we enable Arty Buttons which are GPIOs to fire interrupt lines
-     */
-#if __MEE_DT_MAX_GPIOS > 1
-#error "Make sure to select the proper GPIO module for this demo!"
-#else
-    ggpio = metal_gpio_get_device(0); /* assume only a single GPIO0 module exists */
-    if (ggpio == NULL) {
-        printf ("GPIO device returned an error - check setup.  Exiting\n");
-        exit (0xF5);
-    }
-#endif
-
-    /* Enable each standard Arty GPIO button as input with interrupt enabled
-     * see __metal_driver_sifive_gpio_button_pin() for reference.  The
-     * standard cores use GPIO 4-7 for this.
-     */
-    gpio_enable_io(4, INPUT, ENABLE);
-    gpio_enable_io(5, INPUT, ENABLE);
-    gpio_enable_io(6, INPUT, ENABLE);
-    gpio_enable_io(7, INPUT, ENABLE);
-  
-    for (i = 0; i < METAL_MAX_GPIO_INTERRUPTS; i++) {
-
-        /* Get the actual interrupt line number and populate our array */
-        gpio_lines[i] = __metal_driver_sifive_gpio0_interrupt_lines(ggpio, i);
-    }
-
-#endif  // #if GPIO_PRESENT
-
-#if CLINT_PRESENT
-    /* Get numeric list of CLINT interrupt lines and enable those at the CPU */
-    for (i = 0; i < METAL_MAX_LOCAL_EXT_INTERRUPTS; i++) {
-        clint_interrupt_lines[i] = __metal_driver_sifive_local_external_interrupts0_interrupt_lines(NULL, i);
-
-        /* enable */
-        interrupt_local_enable(clint_interrupt_lines[i]);
-    }
-#else
-#error "This design does not have a CLINT...Exiting.\n");
-    exit(0x77);
-#endif
 
     /* enable software interrupts */
     interrupt_software_enable ();
@@ -230,58 +198,6 @@ int main() {
     printf ("Thanks!  Now exiting...\n");
 
    exit (0);
-}
-
-/* Enable or disable a GPIO for input or output */
-void gpio_enable_io(uint32_t pin, uint32_t input_or_output, uint32_t enable_interrupt) {
-  
-#if GPIO_PRESENT
-  
-    uint32_t io_bit, gpio_in, gpio_out;
-
-    if (pin > MAX_GPIO_PINS) {
-        return;
-    }
-    else {
-        io_bit = (1 << pin);
-    }
-
-    /* read current input & output enable values */
-    gpio_in = read_word(GPIO_INPUT_EN_ADDR);
-    gpio_out = read_word(GPIO_OUTPUT_EN_ADDR);
-
-    /* Setup I/O */
-    if (input_or_output == INPUT) {
-
-        /* Disable output, enable input */
-        write_word(GPIO_OUTPUT_EN_ADDR, (gpio_out & ~io_bit));
-        write_word(GPIO_INPUT_EN_ADDR, (gpio_in | io_bit));
-
-    } else if (input_or_output == OUTPUT) {
-
-        /* Disable input, enable output */
-        write_word(GPIO_INPUT_EN_ADDR, (gpio_in & ~io_bit));
-        write_word(GPIO_OUTPUT_EN_ADDR, (gpio_out | io_bit));
-
-    } else if (input_or_output == DISABLE) {
-
-        /* Turn off both input and output */
-        write_word(GPIO_INPUT_EN_ADDR, (gpio_in & ~io_bit));
-        write_word(GPIO_OUTPUT_EN_ADDR, (gpio_out & ~io_bit));
-    }
-
-    /* Enable Interrupts, which are level-high sensitive */
-    if (enable_interrupt == ENABLE) {
-        /* Enable interrupt */
-        write_word(GPIO_HIGH_IE_ADDR, ENABLE);
-    }
-    else {
-        /* Disable Interrupt */
-        write_word(GPIO_HIGH_IE_ADDR, DISABLE);
-    }
-  
-#endif /* #if GPIO_PRESENT */  
-  
 }
 
 /* External Interrupt ID #11 - handles all global interrupts */
@@ -331,10 +247,6 @@ void __attribute__((weak, interrupt)) button_handler (void) {
     button_isr_counter++;
 }
 
-void __attribute__((weak, interrupt)) default_vector_handler (void) {
-    /* Add functionality if desired */
-    while (1);
-}
 
 void __attribute__((weak)) default_exception_handler(void) {
 
