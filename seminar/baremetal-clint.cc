@@ -65,8 +65,8 @@
 
 // IN 32 BITS this register is 32 bit long, in 64 it is 64 bit long
 #define MCAUSE_INT_MASK                     0x8000000000000000UL
-#define MCAUSE_CAUSE                        0x7FFFFFFFFFFFFFFFUL
-#define MCAUSE_CODE(cause)                  (cause & MCAUSE_CAUSE)
+#define MCAUSE_CAUSE_MASK                   0x7FFFFFFFFFFFFFFFUL
+#define MCAUSE_CODE(cause)                  (cause & MCAUSE_CAUSE_MASK)
 
 /* Compile time options to determine which interrupt modules we have */
 #define CLINT_PRESENT TRUE
@@ -127,15 +127,58 @@ void __attribute__((weak, interrupt)) external_handler (void);
 void __attribute__((weak, interrupt)) default_vector_handler (void);
 void __attribute__((weak)) default_exception_handler(void);
 
+
+// define direct mode handler
 void default_interruption_handler() {
     unsigned long mcause_value = read_csr(mcause);
 
     if (mcause_value & MCAUSE_INT_MASK) {
         // branch to interrupt handler
+        async_handler[MCAUSE_CODE(mcause_value)];
     } else {
-        // branch to exception handler 
+        // branch to exception handler
     }
 }
+
+// timer handler
+void timer_handler() {
+    uintptr_t code = MCAUSE_CODE(read_csr(mcause));
+    uintptr_t mtime, mip;
+    uintptr_t int_bit = read_csr(mip);
+
+    printf ("Timer Handler! Interrupt ID: %d, Count: %d\n", code, ++timer_isr_counter);
+
+    /* set our next interval */
+    SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
+    
+}
+
+// setup handler vectors
+void* async_handler[] = {
+    (void*) 0,          // User Software Interrupt
+    (void*) 0,          // Supervisor Software Interrupt
+    (void*) 0,          // Reserved
+    (void*) 0,          // Machine Software Interrupt
+    (void*) 0,          // User Timer Interrupt
+    (void*) 0,          // Supervisor Timer Interrupt
+    (void*) 0,          // Reserved
+    &timer_handler,     // Machine Timer Interrupt
+    (void*) 0,          // User External Interrupt
+    (void*) 0,          // Supervisor External Interrupt
+    (void*) 0,          // Reserved
+    (void*) 0,          // Machine External Interrupt
+    (void*) 0,          // Reserved
+    (void*) 0,          // Reserved
+    (void*) 0,          // Reserved
+    (void*) 0,          // Reserved
+    
+    (void*) 0,          // Local Interrupt 1
+    (void*) 0           // Local Interrupt 2
+    
+};
+
+// test variable
+uint32_t timer_isr_counter = 0;
 
 struct uart {
     void put(char* in) {
@@ -181,7 +224,8 @@ int main() {
     interrupt_global_enable();
 
     /* Allow timer interrupt to fire before we continue, running at ~5s intervals */
-    printf ("Waiting for 5s Timer interrupt to fire...\n");
+    printf ("Waiting for 5s Timer interrupt to fire...\n");  // have to test if printf works 
+                                                             // (my guess is it doesn't)
     while (!timer_isr_counter);
     interrupt_timer_disable();
 
@@ -189,11 +233,6 @@ int main() {
     fflush(stdout);
     printf ("\nSetting software interrupt...\n");
     write_word(MSIP_BASE_ADDR(read_csr(mhartid)), 0x1);
-
-    /* Tell user to push a button to demonstrate gpio line assertion */
-    printf ("Waiting for any 4 button presses...\n\n");
-    fflush(stdout);
-    while (button_isr_counter < 4){};
 
     printf ("Thanks!  Now exiting...\n");
 
@@ -233,6 +272,7 @@ void __attribute__((weak, interrupt)) timer_handler (void) {
     SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
 }
 
+// unused
 void __attribute__((weak, interrupt)) button_handler (void) {
 
     uintptr_t mip, code = MCAUSE_CODE(read_csr(mcause));
@@ -244,7 +284,7 @@ void __attribute__((weak, interrupt)) button_handler (void) {
     while ((read_csr(mip) & int_bit));
 
     /* increment counter */
-    button_isr_counter++;
+    // button_isr_counter++;
 }
 
 
@@ -263,6 +303,11 @@ void __attribute__((weak)) default_exception_handler(void) {
     /* Exit here using non-zero return code */
     exit (0xEE);
 }
+
+#define METAL_LOCAL_INTERRUPT_TMR 0x10
+#define METAL_MIE_INTERRUPT 0x8
+#define METAL_LOCAL_INTERRUPT_SW 0x8
+#define METAL_LOCAL_INTERRUPT_EXT 0x800
 
 void interrupt_global_enable (void) {
     uintptr_t m;
