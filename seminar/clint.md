@@ -154,6 +154,30 @@ correspondente ao **ID da interrupção**. Do **índice da tabela de vetores**, 
 
 Lembre-se de que a **tabela de vetores** contém um ***opcode*** que é uma instrução de ***jump*** para um local específico.
 
+## Entrada e Saída do Tratador de Interrupções
+
+**Sempre** que ocorrer uma interrupção, o hardware salvará e restaurará automaticamente registros importantes.
+
+Ao entrar:
+
+```
+mepc            <- pc
+mstatus.mpp     <- priv
+mstatus.mpie    <- mstatus.mie
+pc              <- mtvec (se mtvec.mode = Direct) | mtvec.base + 4 * exception_code 
+mstatus.mie     <- 0
+```
+
+Ao sair:
+
+```
+pc              <- mepc
+priv            <- mstatus.mpp
+mstatus.mie     <- mstatus.mpie
+```
+
+**`priv` refere-se ao nível de privilégio atual, o qual não é visível quando estamos operando nesse nível.**
+
 ## RV32 vs RV64 (no CLINT)
 
 A única diferença é referente ao `mstatus`, onde o registrador passa de 32 para 64 bits.
