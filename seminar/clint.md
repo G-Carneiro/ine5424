@@ -81,7 +81,7 @@ elaborar sobre tabela de prioridades
 
 - Indica quais interrupções estão habilitadas.
 
-#### mtvec
+#### Machine Trap-Vector Base-Address (mtvec)
 
 - Contém o endereço base da tabela de vetores de interrupção e a configuração do modo de interrupção.
 - Todas as exceções síncronas usam para tratamento de exceções.
@@ -94,6 +94,14 @@ elaborar sobre tabela de prioridades
 #### Machine Interrupt Delegation (mideleg)
 
 - Delega interrupções ao modo supervisor.
+
+#### Machine Trap Value (mtval)
+
+- Quando um trap é encontrado no modo Machine, `mtval` é definido como zero ou com informações específicas de exceção para auxiliar o software a lidar com o trap.
+- Caso contrário, `mtval` nunca é escrito pela implementação, embora possa ser escrito explicitamente pelo software.
+- A plataforma de hardware especificará quais exceções irão usá-lo.
+- Quando um ponto de interrupção de hardware é acionado ou ocorre uma exceção de busca, carregamento ou armazenamento de instruções desalinhadas, acesso ou falha de página, `mtval` é gravado com o endereço virtual com falha.
+- Opcionalmente, o registrador `mtval` também pode ser usado para retornar os bits de instrução com falha em uma exceção de instrução ilegal (`mepc` aponta para a instrução com falha na memória).
 
 ### Comuns ao CLINT e CLIC
 
