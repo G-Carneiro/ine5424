@@ -9,7 +9,9 @@
 explicar particularidades
 
 CLINT = core local interrupter
-CLIC = core local interrupt controller 
+
+CLIC = core local interrupt controller
+
 PLIC = Platform Local Interrupt Controller 
 
 
@@ -27,7 +29,7 @@ PLIC = Platform Local Interrupt Controller
     se incrementa automaticamente independente de qualquer instrução executada pela CPU,
     em algum ponto **mtimecmp** se iguala a **mtime** e dessa forma a CPU entra com o tratador de interrupção.
 
-  
+
 3. **Armadilha ou Trap**, se refere a uma transferência de controle **síncrona** para o
   tratador de armadilha devido a um condição excepcional causada na thread corrente (e.g execução de um programa que teve uma divisão por zero).
     - Exemplo: Seja uma CPU com três modos de operação: Máquina, Supervisor e Usuário.
@@ -37,7 +39,9 @@ PLIC = Platform Local Interrupt Controller
 
 ## interrupcoes sincronas e assincronas
 sincronas = exception
+
 assincrona = interrupt
+
 elaborar mais
 
 ## Registradores
@@ -61,8 +65,6 @@ elaborar mais
   mstatus.xIE <- mstatus.xPIE
   Priv <- xPP
   ```
-
-[//]: # (TODO: Priv é bit de quem?)
 
 #### Machine Cause (mcause)
 
@@ -110,7 +112,6 @@ elaborar sobre tabela de prioridades
 - Quando resetado, vai para 0.
 - Interrupções de tempo sempre vão para o modo Machine, a não ser quando delegados ao modo Supervisor com o uso do `mideleg`. O mesmo ocorre com as exceções.
 
-[//]: # (TODO: manual cookbook com contradição)
 
 #### Machine Timer Compare (mtimecmp)
 
@@ -148,9 +149,9 @@ Lembre-se de que a **tabela de vetores** contém um ***opcode*** que é uma inst
 ## RV32 vs RV64 (no CLINT)
 
 A única diferença é referente ao `mstatus`, onde o registrador passa de 32 para 64 bits.
-nao sei se o mcause tambem muda achava que sim
 
-[//]: # (TODO: somente precisamos implementar o bit SD ou os demais tbm?)
+[//]: # (TODO: devemos explicar oq é cada bit de um registrador. ex: mie.)
+[//]: # (falar sobre quando incrementar pc e oq fazer qnd n incrementa)
 
 ## Guia de Siglas (não colocar na wiki)
 

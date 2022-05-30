@@ -214,7 +214,7 @@ int main() {
     write_csr (mtvec, (mtvec_base | mode));
 
     /* enable software interrupts */
-    interrupt_software_enable ();
+    interrupt_software_enable();
 
     /* enable timer interrupts */
     SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
@@ -235,7 +235,7 @@ int main() {
 
     uart.put("Thanks!  Now exiting...\n");
 
-   exit (0);
+   exit(0);
 }
 
 /* External Interrupt ID #11 - handles all global interrupts */
