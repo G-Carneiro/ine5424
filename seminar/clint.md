@@ -4,6 +4,15 @@
 
 ### Terminologias Básicas
 
+### CLINT, CLIC, PLIC
+
+explicar particularidades
+
+CLINT = core local interrupter
+CLIC = core local interrupt controller 
+PLIC = Platform Local Interrupt Controller 
+
+
 1. **Exceções** se referem a uma condição incomum no sistema ocorrida em tempo
   de execução em uma instrução.
     - Exemplo: O endereço de um dado que não foi alinhado corretamente em uma instrução *load*, faz com que a CPU entre com o tratamento de exceção do tipo "endereço
@@ -26,9 +35,10 @@
       tratamento de armadilha e um área de pilhada dedicada a eles. Quando em modo usuário, uma troca de contexto é requerida para tratar de um evento em modo supervisor, o software configura o sistema para uma troca de contexto e
       chama a instrução **ECALL** que troca o controle para o tratador de exceção de ambiente de usuário.  
 
-
-Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
-
+## interrupcoes sincronas e assincronas
+sincronas = exception
+assincrona = interrupt
+elaborar mais
 
 ## Registradores
 
@@ -59,6 +69,7 @@ Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
 - Indica qual evento que causou o trap.
 - Caso a causa seja uma interrupção o bit `Interrupt` é setado.
 - Se for gerada mais de uma exceção síncrona, a tabela de prioridades é utilizada.
+elaborar sobre tabela de prioridades
 
 #### Machine Interrupt Pending (mip)
 
@@ -137,6 +148,7 @@ Lembre-se de que a **tabela de vetores** contém um ***opcode*** que é uma inst
 ## RV32 vs RV64 (no CLINT)
 
 A única diferença é referente ao `mstatus`, onde o registrador passa de 32 para 64 bits.
+nao sei se o mcause tambem muda achava que sim
 
 [//]: # (TODO: somente precisamos implementar o bit SD ou os demais tbm?)
 
