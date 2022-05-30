@@ -64,9 +64,9 @@
 #define __riscv_xlen 64
 
 // IN 32 BITS this register is 32 bit long, in 64 it is 64 bit long
-#define MCAUSE_INTR                         0x8000000000000000UL
-#define MCAUSE_CAUSE                        0x7FFFFFFFFFFFFFFFUL
-#define MCAUSE_CODE(cause)                  (cause & MCAUSE_CAUSE)
+#define MCAUSE_INT_MASK                     0x8000000000000000UL
+#define MCAUSE_CAUSE_MASK                   0x7FFFFFFFFFFFFFFFUL
+#define MCAUSE_CODE(cause)                  (cause & MCAUSE_CAUSE_MASK)
 
 /* Compile time options to determine which interrupt modules we have */
 #define CLINT_PRESENT TRUE
@@ -128,8 +128,61 @@ void __attribute__((weak, interrupt)) default_vector_handler (void);
 void __attribute__((weak)) default_exception_handler(void);
 
 
+// define direct mode handler
+void default_interruption_handler() {
+    unsigned long mcause_value = read_csr(mcause);
+
+    if (mcause_value & MCAUSE_INT_MASK) {
+        // branch to interrupt handler
+        async_handler[MCAUSE_CODE(mcause_value)];
+    } else {
+        // branch to exception handler
+    }
+}
+
+// timer handler
+void timer_handler() {
+    uintptr_t code = MCAUSE_CODE(read_csr(mcause));
+    uintptr_t mtime, mip;
+    uintptr_t int_bit = read_csr(mip);
+
+    uart.put("Timer Handler!\n");
+
+    /* set our next interval */
+    SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
+    
+}
+
+// setup handler vectors
+void* async_handler[] = {
+    (void*) 0,          // User Software Interrupt
+    (void*) 0,          // Supervisor Software Interrupt
+    (void*) 0,          // Reserved
+    (void*) 0,          // Machine Software Interrupt
+    (void*) 0,          // User Timer Interrupt
+    (void*) 0,          // Supervisor Timer Interrupt
+    (void*) 0,          // Reserved
+    &timer_handler,     // Machine Timer Interrupt
+    (void*) 0,          // User External Interrupt
+    (void*) 0,          // Supervisor External Interrupt
+    (void*) 0,          // Reserved
+    (void*) 0,          // Machine External Interrupt
+    (void*) 0,          // Reserved
+    (void*) 0,          // Reserved
+    (void*) 0,          // Reserved
+    (void*) 0,          // Reserved
+    
+    (void*) 0,          // Local Interrupt 1
+    (void*) 0           // Local Interrupt 2
+    
+};
+
+// test variable
+uint32_t timer_isr_counter = 0;
+
 struct uart {
     void put(char* in) {
+        int pos = 0;
         char tmp = *in;
         while(tmp != '\0'){
             asm volatile ("lui t0, %0 \n"
@@ -138,14 +191,16 @@ struct uart {
                           "sw t1, 0(t0) \n"
                           :
                           : "r"(UART_UPPER_ADDR), "r"(tmp));
-        } 
+            tmp = in[pos];
+        }
     }
 } uart;
 
 /* Main - Setup CLINT interrupt handling and describe how to trigger interrupt */
 int main() {
 
-    uint32_t i, mode = MTVEC_MODE_CLINT_VECTORED;
+    // define direct mode
+    uint32_t i, mode = MTVEC_MODE_CLINT_DIRECT;
     uintptr_t mtvec_base;
     // struct metal_gpio *ggpio;
 
@@ -158,50 +213,6 @@ int main() {
     mtvec_base = (uintptr_t)&__mtvec_clint_vector_table;
     write_csr (mtvec, (mtvec_base | mode));
 
-#if GPIO_PRESENT
-
-    /* Here we enable Arty Buttons which are GPIOs to fire interrupt lines
-     */
-#if __MEE_DT_MAX_GPIOS > 1
-#error "Make sure to select the proper GPIO module for this demo!"
-#else
-    ggpio = metal_gpio_get_device(0); /* assume only a single GPIO0 module exists */
-    if (ggpio == NULL) {
-        printf ("GPIO device returned an error - check setup.  Exiting\n");
-        exit (0xF5);
-    }
-#endif
-
-    /* Enable each standard Arty GPIO button as input with interrupt enabled
-     * see __metal_driver_sifive_gpio_button_pin() for reference.  The
-     * standard cores use GPIO 4-7 for this.
-     */
-    gpio_enable_io(4, INPUT, ENABLE);
-    gpio_enable_io(5, INPUT, ENABLE);
-    gpio_enable_io(6, INPUT, ENABLE);
-    gpio_enable_io(7, INPUT, ENABLE);
-  
-    for (i = 0; i < METAL_MAX_GPIO_INTERRUPTS; i++) {
-
-        /* Get the actual interrupt line number and populate our array */
-        gpio_lines[i] = __metal_driver_sifive_gpio0_interrupt_lines(ggpio, i);
-    }
-
-#endif  // #if GPIO_PRESENT
-
-#if CLINT_PRESENT
-    /* Get numeric list of CLINT interrupt lines and enable those at the CPU */
-    for (i = 0; i < METAL_MAX_LOCAL_EXT_INTERRUPTS; i++) {
-        clint_interrupt_lines[i] = __metal_driver_sifive_local_external_interrupts0_interrupt_lines(NULL, i);
-
-        /* enable */
-        interrupt_local_enable(clint_interrupt_lines[i]);
-    }
-#else
-#error "This design does not have a CLINT...Exiting.\n");
-    exit(0x77);
-#endif
-
     /* enable software interrupts */
     interrupt_software_enable ();
 
@@ -213,75 +224,18 @@ int main() {
     interrupt_global_enable();
 
     /* Allow timer interrupt to fire before we continue, running at ~5s intervals */
-    printf ("Waiting for 5s Timer interrupt to fire...\n");
+    uart.put("Waiting for 5s Timer interrupt to fire...\n");
     while (!timer_isr_counter);
     interrupt_timer_disable();
 
     /* write msip and display message that s/w handler was hit */
     fflush(stdout);
-    printf ("\nSetting software interrupt...\n");
+    uart.put("\nSetting software interrupt...\n");
     write_word(MSIP_BASE_ADDR(read_csr(mhartid)), 0x1);
 
-    /* Tell user to push a button to demonstrate gpio line assertion */
-    printf ("Waiting for any 4 button presses...\n\n");
-    fflush(stdout);
-    while (button_isr_counter < 4){};
-
-    printf ("Thanks!  Now exiting...\n");
+    uart.put("Thanks!  Now exiting...\n");
 
    exit (0);
-}
-
-/* Enable or disable a GPIO for input or output */
-void gpio_enable_io(uint32_t pin, uint32_t input_or_output, uint32_t enable_interrupt) {
-  
-#if GPIO_PRESENT
-  
-    uint32_t io_bit, gpio_in, gpio_out;
-
-    if (pin > MAX_GPIO_PINS) {
-        return;
-    }
-    else {
-        io_bit = (1 << pin);
-    }
-
-    /* read current input & output enable values */
-    gpio_in = read_word(GPIO_INPUT_EN_ADDR);
-    gpio_out = read_word(GPIO_OUTPUT_EN_ADDR);
-
-    /* Setup I/O */
-    if (input_or_output == INPUT) {
-
-        /* Disable output, enable input */
-        write_word(GPIO_OUTPUT_EN_ADDR, (gpio_out & ~io_bit));
-        write_word(GPIO_INPUT_EN_ADDR, (gpio_in | io_bit));
-
-    } else if (input_or_output == OUTPUT) {
-
-        /* Disable input, enable output */
-        write_word(GPIO_INPUT_EN_ADDR, (gpio_in & ~io_bit));
-        write_word(GPIO_OUTPUT_EN_ADDR, (gpio_out | io_bit));
-
-    } else if (input_or_output == DISABLE) {
-
-        /* Turn off both input and output */
-        write_word(GPIO_INPUT_EN_ADDR, (gpio_in & ~io_bit));
-        write_word(GPIO_OUTPUT_EN_ADDR, (gpio_out & ~io_bit));
-    }
-
-    /* Enable Interrupts, which are level-high sensitive */
-    if (enable_interrupt == ENABLE) {
-        /* Enable interrupt */
-        write_word(GPIO_HIGH_IE_ADDR, ENABLE);
-    }
-    else {
-        /* Disable Interrupt */
-        write_word(GPIO_HIGH_IE_ADDR, DISABLE);
-    }
-  
-#endif /* #if GPIO_PRESENT */  
-  
 }
 
 /* External Interrupt ID #11 - handles all global interrupts */
@@ -299,7 +253,7 @@ void __attribute__((weak, interrupt)) software_handler (void) {
     uintptr_t mip, code = MCAUSE_CODE(read_csr(mcause));
     uintptr_t int_bit = read_csr(mip);
 
-    printf ("Software Handler!  Interrupt ID: %d\n", code);
+    uart.put("Software Handler!\n");
 
     /* Clear Software Pending Bit which clears mip.msip bit */
     write_word(MSIP_BASE_ADDR(read_csr(mhartid)), 0x0);
@@ -311,30 +265,27 @@ void __attribute__((weak, interrupt)) timer_handler (void) {
     uintptr_t mtime, mip;
     uintptr_t int_bit = read_csr(mip);
 
-    printf ("Timer Handler! Interrupt ID: %d, Count: %d\n", code, ++timer_isr_counter);
+    uart.put("Timer Handler!\n");
 
     /* set our next interval */
     SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
 }
 
+// unused
 void __attribute__((weak, interrupt)) button_handler (void) {
 
     uintptr_t mip, code = MCAUSE_CODE(read_csr(mcause));
     uintptr_t int_bit = ((1 << code) & read_csr(mip));
 
-    printf ("Button Handler! Interrupt ID: %d\n", code);
+    uart.put("Button Handler!\n");
 
     /* wait for user to release button */
     while ((read_csr(mip) & int_bit));
 
     /* increment counter */
-    button_isr_counter++;
+    // button_isr_counter++;
 }
 
-void __attribute__((weak, interrupt)) default_vector_handler (void) {
-    /* Add functionality if desired */
-    while (1);
-}
 
 void __attribute__((weak)) default_exception_handler(void) {
 
@@ -344,13 +295,17 @@ void __attribute__((weak)) default_exception_handler(void) {
     uintptr_t mtval = read_csr(mtval);
     uintptr_t code = MCAUSE_CODE(mcause);
 
-    printf ("Exception Hit! mcause: 0x%08x, mepc: 0x%08x, mtval: 0x%08x\n", mcause, mepc, mtval);
-    printf ("Mcause Exception Code: 0x%08x\n", code);
+    uart.put("Exception Hit!\n");
     printf("Now Exiting...\n");
 
     /* Exit here using non-zero return code */
     exit (0xEE);
 }
+
+#define METAL_LOCAL_INTERRUPT_TMR 0x10
+#define METAL_MIE_INTERRUPT 0x8
+#define METAL_LOCAL_INTERRUPT_SW 0x8
+#define METAL_LOCAL_INTERRUPT_EXT 0x800
 
 void interrupt_global_enable (void) {
     uintptr_t m;
