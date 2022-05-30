@@ -1,8 +1,34 @@
 # Core Local Interruptor (CLINT)
 
-## Exceção, Interrupção, Armadilha (?)
+## Exceção, Interrupção, Armadilha (Trap)
+
+### Terminologias Básicas
+
+1. **Exceções** se referem a uma condição incomum no sistema ocorrida em tempo
+  de execução em uma instrução.
+    - Exemplo: O endereço de um dado que não foi alinhado corretamente em uma instrução *load*, faz com que a CPU entre com o tratamento de exceção do tipo "endereço
+    desalinhado", que irá aparecer no registrador **mcause**. 
+
+2. **Interrupção** se refere a um evento externo que ocorre de forma **assíncrona** na 
+  thread corrente.
+  Quando uma interrupção precisa ser atendida, uma instrução é selecionada para receber
+  a exceção de interrupção.
+    - Exemplo: Um *timer* de interrupção é utilizado para acionar um evento futuro,
+    sendo assim a CPU escreve em seu registrador **mtimecmp** o valor de **mtime** + ticks que se referem a um número de clocks de relógio no futuro. Como **mtime** 
+    se incrementa automaticamente independente de qualquer instrução executada pela CPU,
+    em algum ponto **mtimecmp** se iguala a **mtime** e dessa forma a CPU entra com o tratador de interrupção.
+
+  
+3. **Armadilha ou Trap**, se refere a uma transferência de controle **síncrona** para o
+  tratador de armadilha devido a um condição excepcional causada na thread corrente (e.g execução de um programa que teve uma divisão por zero).
+    - Exemplo: Seja uma CPU com três modos de operação: Máquina, Supervisor e Usuário.
+      Cada um deles possui seus próprios registradores de controle e status (CSRs) para
+      tratamento de armadilha e um área de pilhada dedicada a eles. Quando em modo usuário, uma troca de contexto é requerida para tratar de um evento em modo supervisor, o software configura o sistema para uma troca de contexto e
+      chama a instrução **ECALL** que troca o controle para o tratador de exceção de ambiente de usuário.  
+
 
 Objetivo aqui é fazer uma breve revisão de conceitos e mostrar exemplos.
+
 
 ## Registradores
 
