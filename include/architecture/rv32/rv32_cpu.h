@@ -360,7 +360,7 @@ public:
 
     static void mret() { ASM("mret"); }
 
-    static void mideleg(Reg value) { ASM("csrw mideleg, %0" : : "r"(value) : "cc"); }
+    static voidmi mideleg(Reg value) { ASM("csrw mideleg, %0" : : "r"(value) : "cc"); }
     static void medeleg(Reg value) { ASM("csrw medeleg, %0" : : "r"(value) : "cc"); }
 
     // Supervisor mode

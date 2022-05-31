@@ -101,17 +101,24 @@ O campo `BASE` consiste no endereço base da tabela de vetores e `MODE` refere-s
 
 - Delega exceções ao modo supervisor.
 
+![medeleg](images/medeleg.png)
+
 #### Machine Interrupt Delegation (mideleg)
 
 - Delega interrupções ao modo supervisor.
 
+![mideleg](images/mideleg.png)
+
 #### Machine Trap Value (mtval)
 
-- Quando um trap é encontrado no modo Machine, `mtval` é definido como zero ou com informações específicas de exceção para auxiliar o software a lidar com o trap.
-- Caso contrário, `mtval` nunca é escrito pela implementação, embora possa ser escrito explicitamente pelo software.
-- A plataforma de hardware especificará quais exceções irão usá-lo.
-- Quando um ponto de interrupção de hardware é acionado ou ocorre uma exceção de busca, carregamento ou armazenamento de instruções desalinhadas, acesso ou falha de página, `mtval` é gravado com o endereço virtual com falha.
-- Opcionalmente, o registrador `mtval` também pode ser usado para retornar os bits de instrução com falha em uma exceção de instrução ilegal (`mepc` aponta para a instrução com falha na memória).
+Quando um trap é encontrado no modo Machine, `mtval` é definido como zero ou com informações específicas de exceção para auxiliar o software a lidar com o trap.
+Caso contrário, `mtval` nunca é escrito pela implementação, embora possa ser escrito explicitamente pelo software.
+
+A plataforma de hardware especificará quais exceções irão usá-lo.
+Quando um ponto de interrupção de hardware é acionado ou ocorre uma exceção de busca, carregamento ou armazenamento de instruções desalinhadas, acesso ou falha de página, `mtval` é gravado com o endereço virtual com falha.
+Seus bits mais significativos não usados, são colocados em 0.
+
+Opcionalmente, o registrador `mtval` também pode ser usado para retornar os bits de instrução com falha em uma exceção de instrução ilegal (`mepc` aponta para a instrução com falha na memória).
 
 ### Comuns ao CLINT e CLIC
 
