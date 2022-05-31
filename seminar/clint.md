@@ -126,6 +126,7 @@ elaborar sobre tabela de prioridades
 - Usado em conjunto com `mtime`.
 - Não é resetado, diferente de `mtime`.
 - Cada CPU possui seu próprio registrador.
+- Pode ser escrito por outras CPUs.
 
 ## Modos de Operação
 
@@ -158,11 +159,23 @@ Lembre-se de que a **tabela de vetores** contém um ***opcode*** que é uma inst
 
 ### Software Interrupts - Interrupt ID #3
 
+Interrupções de software são acionadas ao escrever no registrador `msip` de certa CPU.
+
 ### Timer Interrupts - Interrupt ID #7
+
+`mtime >= mtimecmp`.
 
 ### External Interrupts - Interrupt ID #11
 
+Interrupções globais geralmente vão para o PLIC primeiro e depois para CPU usando Interrupt ID #11.
+Em sistemas que não possuam o PLIC, pode ser desativado com `mie.MEIE = 0`.
+
 ### Local Interrupts - Interrupt ID #16+
+
+Conexões locais podem se conectar diretamente a uma fonte de interrupção e não precisam ir para o PLIC. 
+Sua prioridade é fixa com base em Interrupt ID.
+O número máximo de interrupções locais é dado por `XLEN - 16`.
+
 
 ## Entrada e Saída do Tratador de Interrupções
 
