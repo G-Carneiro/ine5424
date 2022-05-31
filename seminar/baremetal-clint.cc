@@ -9,9 +9,9 @@
  * that are connected to the local interrupt lines.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <cstdint>
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <cstdint>
 
 /* These includes get created at build time, and are based on the contents
  * in the bsp folder.  They are useful since they allow us
@@ -112,46 +112,10 @@ void interrupt_local_disable (int id);
 #define write_csr(reg, val) ({ \
   asm volatile ("csrw " #reg ", %0" :: "rK"(val)); })
 
-#define write_dword(addr, data)                 ((*(uint64_t *)(addr)) = data)
-#define read_dword(addr)                        (*(uint64_t *)(addr))
-#define write_word(addr, data)                  ((*(uint32_t *)(addr)) = data)
-#define read_word(addr)                         (*(uint32_t *)(addr))
-#define write_byte(addr, data)                  ((*(uint8_t *)(addr)) = data)
-#define read_byte(addr)                         (*(uint8_t *)(addr))
+#define write_dword(addr, data)                 ((*(unsigned long long *)(addr)) = data)
+#define read_dword(addr)                        (*(unsigned long long *)(addr))
 
-/* Globals */
-void __attribute__((weak, interrupt)) __mtvec_clint_vector_table(void);
-void __attribute__((weak, interrupt)) software_handler (void);
-void __attribute__((weak, interrupt)) timer_handler (void);
-void __attribute__((weak, interrupt)) external_handler (void);
-void __attribute__((weak, interrupt)) default_vector_handler (void);
-void __attribute__((weak)) default_exception_handler(void);
-
-
-// define direct mode handler
-void default_interruption_handler() {
-    unsigned long mcause_value = read_csr(mcause);
-
-    if (mcause_value & MCAUSE_INT_MASK) {
-        // branch to interrupt handler
-        async_handler[MCAUSE_CODE(mcause_value)];
-    } else {
-        // branch to exception handler
-    }
-}
-
-// timer handler
-void timer_handler() {
-    uintptr_t code = MCAUSE_CODE(read_csr(mcause));
-    uintptr_t mtime, mip;
-    uintptr_t int_bit = read_csr(mip);
-
-    uart.put("Timer Handler!\n");
-
-    /* set our next interval */
-    SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
-    
-}
+void __attribute__((weak)) default_handler(void);
 
 // setup handler vectors
 void* async_handler[] = {
@@ -162,7 +126,7 @@ void* async_handler[] = {
     (void*) 0,          // User Timer Interrupt
     (void*) 0,          // Supervisor Timer Interrupt
     (void*) 0,          // Reserved
-    &timer_handler,     // Machine Timer Interrupt
+    (void*) 0, //&timer_handler,     // Machine Timer Interrupt
     (void*) 0,          // User External Interrupt
     (void*) 0,          // Supervisor External Interrupt
     (void*) 0,          // Reserved
@@ -174,14 +138,10 @@ void* async_handler[] = {
     
     (void*) 0,          // Local Interrupt 1
     (void*) 0           // Local Interrupt 2
-    
 };
-
-// test variable
-uint32_t timer_isr_counter = 0;
-
+/*
 struct uart {
-    void put(char* in) {
+    void put(// char* in) {
         int pos = 0;
         char tmp = *in;
         while(tmp != '\0'){
@@ -195,13 +155,58 @@ struct uart {
         }
     }
 } uart;
+*/
+void default_exception_handler(void) {
+
+    /* Read mcause to understand the exception type */
+    unsigned long long mcause = read_csr(mcause);
+    unsigned long long mepc = read_csr(mepc);
+    unsigned long long mtval = read_csr(mtval);
+    unsigned long long code = MCAUSE_CODE(mcause);
+
+    // char* s = "Exception Hit!\n";
+    // uart.put(s);
+    // char* s2 = "Now Exiting...\n";
+    // uart.put(s2);
+
+    /* Exit here using non-zero return code */
+}
+
+// define direct mode handler
+void __attribute__((weak)) default_handler(void) {
+    unsigned long mcause_value = read_csr(mcause);
+
+    if (mcause_value & MCAUSE_INT_MASK) {
+        // branch to interrupt handler
+        async_handler[MCAUSE_CODE(mcause_value)];
+    } else {
+        // branch to exception handler
+        default_exception_handler();
+    }
+}
+
+// timer handler
+void timer_handler() {
+    unsigned long long code = MCAUSE_CODE(read_csr(mcause));
+    unsigned long long mtime, mip;
+    unsigned long long int_bit = read_csr(mip);
+
+    // char* s = "Timer Handler!\n"; 
+    // uart.put(s);
+
+    /* set our next interval */
+    SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
+}
+
+// test variable
+unsigned int timer_isr_counter = 0;
 
 /* Main - Setup CLINT interrupt handling and describe how to trigger interrupt */
 int main() {
 
     // define direct mode
-    uint32_t i, mode = MTVEC_MODE_CLINT_DIRECT;
-    uintptr_t mtvec_base;
+    unsigned int i, mode = MTVEC_MODE_CLINT_DIRECT;
+    unsigned long long mtvec_base;
     // struct metal_gpio *ggpio;
 
     /* Write mstatus.mie = 0 to disable all machine interrupts prior to setup */
@@ -210,7 +215,7 @@ int main() {
     /* Setup mtvec to point to our exception handler table using mtvec.base,
      * and assign mtvec.mode = 1 for CLINT vectored mode of operation. The
      * mtvec.mode field is bit[0] for designs with CLINT, or [1:0] using CLIC */
-    mtvec_base = (uintptr_t)&__mtvec_clint_vector_table;
+    mtvec_base = (unsigned long long) & default_handler;
     write_csr (mtvec, (mtvec_base | mode));
 
     /* enable software interrupts */
@@ -224,19 +229,22 @@ int main() {
     interrupt_global_enable();
 
     /* Allow timer interrupt to fire before we continue, running at ~5s intervals */
-    uart.put("Waiting for 5s Timer interrupt to fire...\n");
+    // char* s = "Waiting for 5s Timer interrupt to fire...\n";
+    // uart.put(s);
     while (!timer_isr_counter);
     interrupt_timer_disable();
 
     /* write msip and display message that s/w handler was hit */
-    fflush(stdout);
-    uart.put("\nSetting software interrupt...\n");
-    write_word(MSIP_BASE_ADDR(read_csr(mhartid)), 0x1);
+    //fflush(stdout);
+    
+    // char* s2 = "\nSetting software interrupt...\n"; 
+    // uart.put(s2);
+    write_dword(MSIP_BASE_ADDR(read_csr(mhartid)), 0x1);
 
-    uart.put("Thanks!  Now exiting...\n");
+    // char* s3 = "Thanks!  Now exiting...\n";
+    // uart.put(s3);
 
-   exit(0);
-}
+   return 1;
 
 /* External Interrupt ID #11 - handles all global interrupts */
 void __attribute__((weak, interrupt)) external_handler (void) {
@@ -250,34 +258,23 @@ void __attribute__((weak, interrupt)) external_handler (void) {
 
 void __attribute__((weak, interrupt)) software_handler (void) {
 
-    uintptr_t mip, code = MCAUSE_CODE(read_csr(mcause));
-    uintptr_t int_bit = read_csr(mip);
+    unsigned long long mip, code = MCAUSE_CODE(read_csr(mcause));
+    unsigned long long int_bit = read_csr(mip);
 
-    uart.put("Software Handler!\n");
+    // uart.put("Software Handler!\n");
 
     /* Clear Software Pending Bit which clears mip.msip bit */
-    write_word(MSIP_BASE_ADDR(read_csr(mhartid)), 0x0);
-}
-
-void __attribute__((weak, interrupt)) timer_handler (void) {
-
-    uintptr_t code = MCAUSE_CODE(read_csr(mcause));
-    uintptr_t mtime, mip;
-    uintptr_t int_bit = read_csr(mip);
-
-    uart.put("Timer Handler!\n");
-
-    /* set our next interval */
-    SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
+    write_dword(MSIP_BASE_ADDR(read_csr(mhartid)), 0x0);
 }
 
 // unused
 void __attribute__((weak, interrupt)) button_handler (void) {
 
-    uintptr_t mip, code = MCAUSE_CODE(read_csr(mcause));
-    uintptr_t int_bit = ((1 << code) & read_csr(mip));
+    unsigned long long mip, code = MCAUSE_CODE(read_csr(mcause));
+    unsigned long long int_bit = ((1 << code) & read_csr(mip));
 
-    uart.put("Button Handler!\n");
+    // char* s = "Button Handler!\n"; 
+    // uart.put(s);
 
     /* wait for user to release button */
     while ((read_csr(mip) & int_bit));
@@ -286,59 +283,43 @@ void __attribute__((weak, interrupt)) button_handler (void) {
     // button_isr_counter++;
 }
 
-
-void __attribute__((weak)) default_exception_handler(void) {
-
-    /* Read mcause to understand the exception type */
-    uintptr_t mcause = read_csr(mcause);
-    uintptr_t mepc = read_csr(mepc);
-    uintptr_t mtval = read_csr(mtval);
-    uintptr_t code = MCAUSE_CODE(mcause);
-
-    uart.put("Exception Hit!\n");
-    printf("Now Exiting...\n");
-
-    /* Exit here using non-zero return code */
-    exit (0xEE);
-}
-
 #define METAL_LOCAL_INTERRUPT_TMR 0x10
 #define METAL_MIE_INTERRUPT 0x8
 #define METAL_LOCAL_INTERRUPT_SW 0x8
 #define METAL_LOCAL_INTERRUPT_EXT 0x800
 
 void interrupt_global_enable (void) {
-    uintptr_t m;
+    unsigned long long m;
     __asm__ volatile ("csrrs %0, mstatus, %1" : "=r"(m) : "r"(METAL_MIE_INTERRUPT));
 }
 
 void interrupt_global_disable (void) {
-    uintptr_t m;
+    unsigned long long m;
     __asm__ volatile ("csrrc %0, mstatus, %1" : "=r"(m) : "r"(METAL_MIE_INTERRUPT));
 }
 
 void interrupt_software_enable (void) {
-    uintptr_t m;
+    unsigned long long m;
     __asm__ volatile ("csrrs %0, mie, %1" : "=r"(m) : "r"(METAL_LOCAL_INTERRUPT_SW));
 }
 
 void interrupt_software_disable (void) {
-    uintptr_t m;
+    unsigned long long m;
     __asm__ volatile ("csrrc %0, mie, %1" : "=r"(m) : "r"(METAL_LOCAL_INTERRUPT_SW));
 }
 
 void interrupt_timer_enable (void) {
-    uintptr_t m;
+    unsigned long long m;
     __asm__ volatile ("csrrs %0, mie, %1" : "=r"(m) : "r"(METAL_LOCAL_INTERRUPT_TMR));
 }
 
 void interrupt_timer_disable (void) {
-    uintptr_t m;
+    unsigned long long m;
     __asm__ volatile ("csrrc %0, mie, %1" : "=r"(m) : "r"(METAL_LOCAL_INTERRUPT_TMR));
 }
 
 void interrupt_external_enable (void) {
-    uintptr_t m;
+    unsigned long long m;
     __asm__ volatile ("csrrs %0, mie, %1" : "=r"(m) : "r"(METAL_LOCAL_INTERRUPT_EXT));
 }
 
@@ -348,13 +329,13 @@ void interrupt_external_disable (void) {
 }
 
 void interrupt_local_enable (int id) {
-    uintptr_t b = 1 << id;
-    uintptr_t m;
+    unsigned long long b = 1 << id;
+    unsigned long long m;
     __asm__ volatile ("csrrs %0, mie, %1" : "=r"(m) : "r"(b));
 }
 
 void interrupt_local_disable (int id) {
-    uintptr_t b = 1 << id;
-    uintptr_t m;
+    unsigned long long b = 1 << id;
+    unsigned long long m;
     __asm__ volatile ("csrrc %0, mie, %1" : "=r"(m) : "r"(b));
 }
