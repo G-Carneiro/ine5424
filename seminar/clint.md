@@ -64,13 +64,17 @@ elaborar mais
   mstatus.MIE <- mstatus.MPIE
   Priv <- mstatus.MPP
   ```
+  
+![mstatus](images/mstatus.png)
 
 #### Machine Cause (mcause)
 
-- Indica qual evento que causou o trap.
-- Caso a causa seja uma interrupção o bit `Interrupt` é setado.
-- Já o campo `Code` indica qual o código da da interrupção/exceção.
-- Se for gerada mais de uma exceção síncrona, a tabela de prioridades é utilizada.
+Indica qual evento que causou o trap, caso a causa seja uma interrupção o bit `Interrupt` é setado.
+Já o campo `Code` indica qual o código da da interrupção/exceção.
+
+![mcause](images/mcause.png)
+
+Se for gerada mais de uma exceção síncrona, a tabela de prioridades é utilizada.
 
 ![mcause priority](images/mcause-priority.png)
 
@@ -79,13 +83,19 @@ elaborar mais
 Quando um trap é encontrado, `mepc` recebe o endereço virtual da instrução interrompida ou que encontrou a exceção.
 Caso contrário, `mepc` nunca é escrito pela implementação, mas pode ser escrito explicitamente pelo software.
 
+![mepc](images/mepc.png)
+
 #### Machine Interrupt Pending (mip)
 
 - Indica quais interrupções estão pendentes.
 
+![mip](images/mip.png)
+
 #### Machine Interrupt Enable (mie)
 
 - Indica quais interrupções estão habilitadas.
+
+![mie](images/mie.png)
 
 #### Machine Trap-Vector Base-Address (mtvec)
 
@@ -95,7 +105,9 @@ Sempre deve ser implementado, mas se poderá ser escrito varia com a implementa�
 
 Ele deve ser configurado no início do fluxo de inicialização, para eventuais tratamentos de exceções.
 
-O campo `BASE` consiste no endereço base da tabela de vetores e `MODE` refere-se ao modo utilizado. 
+O campo `BASE` consiste no endereço base da tabela de vetores e `MODE` refere-se ao modo utilizado.
+
+![mtvec](images/mtvec.png)
 
 #### Machine Exception Delegation (medeleg)
 
@@ -120,49 +132,52 @@ Seus bits mais significativos não usados, são colocados em 0.
 
 Opcionalmente, o registrador `mtval` também pode ser usado para retornar os bits de instrução com falha em uma exceção de instrução ilegal (`mepc` aponta para a instrução com falha na memória).
 
+![mtval](images/mtval.png)
+
 ### Comuns ao CLINT e CLIC
 
 #### Machine Software Interrupt Pending (msip)
 
-- Cada CPU possui seu registrador.
-- Interrupt ID #3.
-- Em sistemas com várias CPUs, uma CPU pode escrever no `msip` de qualquer outra.
-  - Isso permite uma comunicação eficiente entre processadores.
+Cada CPU possui seu registrador.
+Em sistemas com várias CPUs, uma CPU pode escrever no `msip` de qualquer outra.
+Isso permite uma comunicação eficiente entre processadores.
+
+Seu bit menos significativo é refletido no bit `mip.MSIP` e os demais estão em 0.
+Todos os registradores `msip` são zerados no reset.
 
 #### Machine Timer (mtime)
 
-- Contém o número de ciclos a partir de `RTCCLK` (CPU real time clock).
-- Gera interrupção sempre que `mtime >= mtimecmp`, a qual é indicada em `mip.mtip`.
-- Existe um único `mtime`, independente da quantidade de CPUs.
-- Quando resetado, vai para 0.
-- Interrupções de tempo sempre vão para o modo Machine, a não ser quando delegados ao modo Supervisor com o uso do `mideleg`. O mesmo ocorre com as exceções.
+Esse registrador é único, contendo o número de ciclos a partir de `RTCCLK` (CPU real time clock) e deve ser executado em tempo constante, no reset seus campos serão zerados.
+Interrupções são geradas quando `mtime >= mtimecmp`, a qual é indicada em `mip.MTIP`, e sempre vão para o tratador modo Machine (a não ser quando delegadas ao modo Supervisor com o uso do `mideleg`).
 
+![mtime](images/mtime.png)
 
 #### Machine Timer Compare (mtimecmp)
 
-- Usado em conjunto com `mtime`.
-- Não é resetado, diferente de `mtime`.
-- Cada CPU possui seu próprio registrador.
-- Pode ser escrito por outras CPUs.
+Usado em conjunto com `mtime` para interrupções de timer.
+Não é resetado, diferente de `mtime`.
+Cada CPU possui seu próprio registrador e pode ser escrito por outras CPUs.
+
+![mtimecmp](images/mtimecmp.png)
 
 ## Modos de Operação
 
 Existem dois modos de operação do CLINT, o **modo direto** e o **modo vetorizado**.
-Para configurar os modos do CLINT, escreva no campo `mtvec.mode`, que é o **bit[0]**
+Para configurar os modos do CLINT, escreva no campo `mtvec.MODE`, que é o **bit[0]**
 do registrador de status e controle (`mtvec`):
 
-- Para o **modo direto**, `mtvec.mode = 0`.
-- Para o **modo vetorizado**, `mtvec.mode = 1`.
+- Para o **modo direto**, `mtvec.MODE = 0`.
+- Para o **modo vetorizado**, `mtvec.MODE = 1`.
 
 O **modo direto** é o valor **padrão** de reset. 
-O campo `mtvec.base` guarda o endereço base para interrupções e exceções, e deve ter um valor alinhado a um mínimo de **4 bytes no modo direto**, e um mínimo de **64 bytes no modo vetorizado**.
+O campo `mtvec.BASE` guarda o endereço base para interrupções e exceções, e deve ter um valor alinhado a um mínimo de **4 bytes no modo direto**, e um mínimo de **64 bytes no modo vetorizado**.
 
 ### Modo Direto
 
 O **modo direto** significa que todas as interrupções têm armadilha para o mesmo tratador, e não há uma tabela de vetores implementada.
 É a responsabilidade do **software** executar código para descobrir qual interrupção ocorreu.
 
-O **tratador em software** no **modo direto**, deve primeiro ler `mcause.interrupt` para determinar se uma **interrupção** ou **exceção** ocorreu, para então decidir o que fazer baseado no valor de `mcause.code` que contém o código de interrupção ou exceção respectivo.
+O **tratador em software** no **modo direto**, deve primeiro ler `mcause.INTERRUPT` para determinar se uma **interrupção** ou **exceção** ocorreu, para então decidir o que fazer baseado no valor de `mcause.CODE` que contém o código de interrupção ou exceção respectivo.
 
 ### Modo Vetorizado
 
@@ -202,18 +217,18 @@ Ao entrar:
 
 ```
 mepc            <- pc
-mstatus.mpp     <- priv
-mstatus.mpie    <- mstatus.mie
-pc              <- mtvec (se mtvec.mode = Direct) | mtvec.base + 4 * exception_code 
-mstatus.mie     <- 0
+mstatus.MPP     <- priv
+mstatus.MPIE    <- mstatus.MIE
+pc              <- mtvec (se mtvec.MODE = Direct) | mtvec.BASE + 4 * exception_code 
+mstatus.MIE     <- 0
 ```
 
 Ao sair:
 
 ```
-pc              <- mepc
-priv            <- mstatus.mpp
-mstatus.mie     <- mstatus.mpie
+pc              <- MEPC
+priv            <- mstatus.MPP
+mstatus.MIE     <- mstatus.MPIE
 ```
 
 **`priv` refere-se ao nível de privilégio atual, o qual não é visível quando estamos operando nesse nível.**
