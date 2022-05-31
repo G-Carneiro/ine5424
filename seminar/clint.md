@@ -52,7 +52,7 @@ elaborar mais
 
 - Acompanha e controla o estado operacional atual do hart.
 - O bit `MIE` (Machine Interrupt Enable) indica se as interrupções estão habilitadas.
-- Bit `MPIE` (Machine Previous Interrupt Enable) mantém o valor do bit `MIE` anterior, ou seja, salva o contexto da interrupção anterior.
+- Já o bit `MPIE` (Machine Previous Interrupt Enable) mantém o valor do bit `MIE` anterior, ou seja, salva o contexto anterior.
     ```
     mstatus.MPIE <- mstatus.MIE
     mstatus.MIE  <- 0
@@ -69,12 +69,14 @@ elaborar mais
 
 - Indica qual evento que causou o trap.
 - Caso a causa seja uma interrupção o bit `Interrupt` é setado.
+- Já o campo `Code` indica qual o código da da interrupção/exceção.
 - Se for gerada mais de uma exceção síncrona, a tabela de prioridades é utilizada.
-elaborar sobre tabela de prioridades
+
+![mcause priority](images/mcause-priority.png)
 
 #### Machine Exception Program Counter (mepc)
 
-Quando um trap é encontrado `mepc` recebe o endereço virtual da instrução interrompida ou que encontrou a exceção.
+Quando um trap é encontrado, `mepc` recebe o endereço virtual da instrução interrompida ou que encontrou a exceção.
 Caso contrário, `mepc` nunca é escrito pela implementação, mas pode ser escrito explicitamente pelo software.
 
 #### Machine Interrupt Pending (mip)
@@ -87,9 +89,13 @@ Caso contrário, `mepc` nunca é escrito pela implementação, mas pode ser escr
 
 #### Machine Trap-Vector Base-Address (mtvec)
 
-- Contém o endereço base da tabela de vetores de interrupção e a configuração do modo de interrupção.
-- Todas as exceções síncronas usam para tratamento de exceções.
-- Sempre deve ser implementado, mas se poderá ser escrito varia com a implementação. 
+Contém o endereço base da tabela de vetores de interrupção e a configuração do modo de interrupção. 
+Todas as exceções síncronas usam para tratamento de exceções.
+Sempre deve ser implementado, mas se poderá ser escrito varia com a implementação. 
+
+Ele deve ser configurado no início do fluxo de inicialização, para eventuais tratamentos de exceções.
+
+O campo `BASE` consiste no endereço base da tabela de vetores e `MODE` refere-se ao modo utilizado. 
 
 #### Machine Exception Delegation (medeleg)
 
