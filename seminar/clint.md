@@ -73,6 +73,11 @@ elaborar mais
 - Se for gerada mais de uma exceção síncrona, a tabela de prioridades é utilizada.
 elaborar sobre tabela de prioridades
 
+#### Machine Exception Program Counter (mepc)
+
+Quando um trap é encontrado `mepc` recebe o endereço virtual da instrução interrompida ou que encontrou a exceção.
+Caso contrário, `mepc` nunca é escrito pela implementação, mas pode ser escrito explicitamente pelo software.
+
 #### Machine Interrupt Pending (mip)
 
 - Indica quais interrupções estão pendentes.
