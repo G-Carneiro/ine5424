@@ -154,6 +154,16 @@ correspondente ao **ID da interrupção**. Do **índice da tabela de vetores**, 
 
 Lembre-se de que a **tabela de vetores** contém um ***opcode*** que é uma instrução de ***jump*** para um local específico.
 
+## Interrupt Levels
+
+### Software Interrupts - Interrupt ID #3
+
+### Timer Interrupts - Interrupt ID #7
+
+### External Interrupts - Interrupt ID #11
+
+### Local Interrupts - Interrupt ID #16+
+
 ## Entrada e Saída do Tratador de Interrupções
 
 **Sempre** que ocorrer uma interrupção, o hardware salvará e restaurará automaticamente registros importantes.
