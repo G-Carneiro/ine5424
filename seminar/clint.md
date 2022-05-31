@@ -2,18 +2,13 @@
 
 ## Exceção, Interrupção, Armadilha (Trap)
 
-### Terminologias Básicas
+### Terminologias
 
-### CLINT, CLIC, PLIC
-
-explicar particularidades
-
-CLINT = core local interrupter
-
-CLIC = core local interrupt controller
-
-PLIC = Platform Local Interrupt Controller 
-
+- CSRs: Control and Status Registers.
+- HART: hardware threads.
+- WARL: Write Any Values, Reads Legal Values.
+- WLRL: Write/Read Only Legal Values.
+- WPRI: Reserved Writes Preserve Values, Reads Ignore Values.
 
 1. **Exceções** se referem a uma condição incomum no sistema ocorrida em tempo
   de execução em uma instrução.
@@ -35,20 +30,11 @@ PLIC = Platform Local Interrupt Controller
     - Exemplo: Seja uma CPU com três modos de operação: Máquina, Supervisor e Usuário.
       Cada um deles possui seus próprios registradores de controle e status (CSRs) para
       tratamento de armadilha e um área de pilhada dedicada a eles. Quando em modo usuário, uma troca de contexto é requerida para tratar de um evento em modo supervisor, o software configura o sistema para uma troca de contexto e
-      chama a instrução **ECALL** que troca o controle para o tratador de exceção de ambiente de usuário.  
-
-## interrupcoes sincronas e assincronas
-sincronas = exception
-
-assincrona = interrupt
-
-elaborar mais
+      chama a instrução **ECALL** que troca o controle para o tratador de exceção de ambiente de usuário.
 
 ## Registradores
 
-### Registradores da Máquina
-
-#### Machine Status (mstatus)
+### Machine Status (mstatus)
 
 - Acompanha e controla o estado operacional atual do hart.
 - O bit `MIE` (Machine Interrupt Enable) indica se as interrupções estão habilitadas.
@@ -67,7 +53,7 @@ elaborar mais
   
 ![mstatus](images/mstatus.png)
 
-#### Machine Cause (mcause)
+### Machine Cause (mcause)
 
 Indica qual evento que causou o trap, caso a causa seja uma interrupção o bit `Interrupt` é setado.
 Já o campo `Code` indica qual o código da da interrupção/exceção.
@@ -78,26 +64,26 @@ Se for gerada mais de uma exceção síncrona, a tabela de prioridades é utiliz
 
 ![mcause priority](images/mcause-priority.png)
 
-#### Machine Exception Program Counter (mepc)
+### Machine Exception Program Counter (mepc)
 
 Quando um trap é encontrado, `mepc` recebe o endereço virtual da instrução interrompida ou que encontrou a exceção.
 Caso contrário, `mepc` nunca é escrito pela implementação, mas pode ser escrito explicitamente pelo software.
 
 ![mepc](images/mepc.png)
 
-#### Machine Interrupt Pending (mip)
+### Machine Interrupt Pending (mip)
 
 - Indica quais interrupções estão pendentes.
 
 ![mip](images/mip.png)
 
-#### Machine Interrupt Enable (mie)
+### Machine Interrupt Enable (mie)
 
 - Indica quais interrupções estão habilitadas.
 
 ![mie](images/mie.png)
 
-#### Machine Trap-Vector Base-Address (mtvec)
+### Machine Trap-Vector Base-Address (mtvec)
 
 Contém o endereço base da tabela de vetores de interrupção e a configuração do modo de interrupção. 
 Todas as exceções síncronas usam para tratamento de exceções.
@@ -109,19 +95,19 @@ O campo `BASE` consiste no endereço base da tabela de vetores e `MODE` refere-s
 
 ![mtvec](images/mtvec.png)
 
-#### Machine Exception Delegation (medeleg)
+### Machine Exception Delegation (medeleg)
 
 - Delega exceções ao modo supervisor.
 
 ![medeleg](images/medeleg.png)
 
-#### Machine Interrupt Delegation (mideleg)
+### Machine Interrupt Delegation (mideleg)
 
 - Delega interrupções ao modo supervisor.
 
 ![mideleg](images/mideleg.png)
 
-#### Machine Trap Value (mtval)
+### Machine Trap Value (mtval)
 
 Quando um trap é encontrado no modo Machine, `mtval` é definido como zero ou com informações específicas de exceção para auxiliar o software a lidar com o trap.
 Caso contrário, `mtval` nunca é escrito pela implementação, embora possa ser escrito explicitamente pelo software.
@@ -134,9 +120,7 @@ Opcionalmente, o registrador `mtval` também pode ser usado para retornar os bit
 
 ![mtval](images/mtval.png)
 
-### Comuns ao CLINT e CLIC
-
-#### Machine Software Interrupt Pending (msip)
+### Machine Software Interrupt Pending (msip)
 
 Cada CPU possui seu registrador.
 Em sistemas com várias CPUs, uma CPU pode escrever no `msip` de qualquer outra.
@@ -145,14 +129,14 @@ Isso permite uma comunicação eficiente entre processadores.
 Seu bit menos significativo é refletido no bit `mip.MSIP` e os demais estão em 0.
 Todos os registradores `msip` são zerados no reset.
 
-#### Machine Timer (mtime)
+### Machine Timer (mtime)
 
 Esse registrador é único, contendo o número de ciclos a partir de `RTCCLK` (CPU real time clock) e deve ser executado em tempo constante, no reset seus campos serão zerados.
 Interrupções são geradas quando `mtime >= mtimecmp`, a qual é indicada em `mip.MTIP`, e sempre vão para o tratador modo Machine (a não ser quando delegadas ao modo Supervisor com o uso do `mideleg`).
 
 ![mtime](images/mtime.png)
 
-#### Machine Timer Compare (mtimecmp)
+### Machine Timer Compare (mtimecmp)
 
 Usado em conjunto com `mtime` para interrupções de timer.
 Não é resetado, diferente de `mtime`.
@@ -236,14 +220,3 @@ mstatus.MIE     <- mstatus.MPIE
 ## RV32 vs RV64 (no CLINT)
 
 A única diferença é referente ao `mstatus`, onde o registrador passa de 32 para 64 bits.
-
-[//]: # (TODO: devemos explicar oq é cada bit de um registrador. ex: mie.)
-[//]: # (falar sobre quando incrementar pc e oq fazer qnd n incrementa)
-
-## Guia de Siglas (não colocar na wiki)
-
-- CSRs: Control and Status Registers.
-- HART: hardware threads.
-- WARL: Write Any Values, Reads Legal Values.
-- WLRL: Write/Read Only Legal Values.
-- WPRI: Reserved Writes Preserve Values, Reads Ignore Values.

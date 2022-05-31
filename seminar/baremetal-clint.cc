@@ -215,7 +215,7 @@ int main() {
     /* Setup mtvec to point to our exception handler table using mtvec.base,
      * and assign mtvec.mode = 1 for CLINT vectored mode of operation. The
      * mtvec.mode field is bit[0] for designs with CLINT, or [1:0] using CLIC */
-    mtvec_base = (unsigned long long) & default_handler;
+    mtvec_base = (unsigned long long) &default_handler;
     write_csr (mtvec, (mtvec_base | mode));
 
     /* enable software interrupts */
@@ -236,7 +236,7 @@ int main() {
 
     /* write msip and display message that s/w handler was hit */
     //fflush(stdout);
-    
+
     // char* s2 = "\nSetting software interrupt...\n"; 
     // uart.put(s2);
     write_dword(MSIP_BASE_ADDR(read_csr(mhartid)), 0x1);
@@ -244,8 +244,8 @@ int main() {
     // char* s3 = "Thanks!  Now exiting...\n";
     // uart.put(s3);
 
-   return 1;
-
+    return 1;
+}
 /* External Interrupt ID #11 - handles all global interrupts */
 void __attribute__((weak, interrupt)) external_handler (void) {
 
