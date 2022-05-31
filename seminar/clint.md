@@ -51,19 +51,18 @@ elaborar mais
 #### Machine Status (mstatus)
 
 - Acompanha e controla o estado operacional atual do hart.
-- `x = [M | S | U]`
-- O bit xIE indica se as interrupções estão habilitadas no modo x.
-- Bit xPIE mantém o valor do bit xIE anterior, ou seja, salva o contexto da interrupção anterior.
+- O bit `MIE` (Machine Interrupt Enable) indica se as interrupções estão habilitadas.
+- Bit `MPIE` (Machine Previous Interrupt Enable) mantém o valor do bit `MIE` anterior, ou seja, salva o contexto da interrupção anterior.
     ```
-    xPIE <- xIE
-    xIE  <- 0
+    mstatus.MPIE <- mstatus.MIE
+    mstatus.MIE  <- 0
     ```
-- Bit xPP recebe y, quando um trap é levado do modo de privilégio y para o x.
-  - `xPP = y`
-- xRET instruction:
+- Bit `MPP` recebe `Priv` (nível de privilégio atual). 
+  - `mstatus.MPP = Priv`
+- MRET instruction:
   ```
-  mstatus.xIE <- mstatus.xPIE
-  Priv <- xPP
+  mstatus.MIE <- mstatus.MPIE
+  Priv <- mstatus.MPP
   ```
 
 #### Machine Cause (mcause)
