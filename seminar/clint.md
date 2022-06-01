@@ -217,6 +217,3 @@ mstatus.MIE     <- mstatus.MPIE
 
 **`priv` refere-se ao nível de privilégio atual, o qual não é visível quando estamos operando nesse nível.**
 
-## RV32 vs RV64 (no CLINT)
-
-A única diferença é referente ao `mstatus`, onde o registrador passa de 32 para 64 bits.

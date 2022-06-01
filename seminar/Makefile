@@ -8,4 +8,4 @@ baremetal-clint.s: baremetal-clint.cc
 	~/riscv/bin/riscv64-unknown-linux-gnu-c++ -S baremetal-clint.cc  
 
 clean:
-	rm baremetal-clint baremetal-clint.o
+	rm baremetal-clint baremetal-clint.o baremetal-clint.s

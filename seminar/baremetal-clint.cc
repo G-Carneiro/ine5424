@@ -126,7 +126,7 @@ void* async_handler[] = {
     (void*) 0,          // User Timer Interrupt
     (void*) 0,          // Supervisor Timer Interrupt
     (void*) 0,          // Reserved
-    (void*) 0, //&timer_handler,     // Machine Timer Interrupt
+//    &timer_handler,     // Machine Timer Interrupt
     (void*) 0,          // User External Interrupt
     (void*) 0,          // Supervisor External Interrupt
     (void*) 0,          // Reserved
@@ -146,7 +146,7 @@ struct uart {
         char tmp = *in;
         while(tmp != '\0'){
             asm volatile ("lui t0, %0 \n"
-                          "andi t1, t1, 0 \n" 
+                          "andi t1, t1, 0 \n"
                           "addi t1, t1, %1 \n"
                           "sw t1, 0(t0) \n"
                           :
@@ -172,30 +172,30 @@ void default_exception_handler(void) {
     /* Exit here using non-zero return code */
 }
 
-// define direct mode handler
-void __attribute__((weak)) default_handler(void) {
-    unsigned long mcause_value = read_csr(mcause);
-
-    if (mcause_value & MCAUSE_INT_MASK) {
-        // branch to interrupt handler
-        async_handler[MCAUSE_CODE(mcause_value)];
-    } else {
-        // branch to exception handler
-        default_exception_handler();
-    }
-}
-
 // timer handler
 void timer_handler() {
     unsigned long long code = MCAUSE_CODE(read_csr(mcause));
     unsigned long long mtime, mip;
     unsigned long long int_bit = read_csr(mip);
 
-    // char* s = "Timer Handler!\n"; 
+    // char* s = "Timer Handler!\n";
     // uart.put(s);
 
     /* set our next interval */
     SET_TIMER_INTERVAL_MS(DEMO_TIMER_INTERVAL);
+}
+
+// define direct mode handler
+void __attribute__((weak)) default_handler(void) {
+    unsigned long mcause_value = read_csr(mcause);
+
+    if (mcause_value & MCAUSE_INT_MASK) {
+        // branch to interrupt handler
+        timer_handler();
+    } else {
+        // branch to exception handler
+        default_exception_handler();
+    }
 }
 
 // test variable
