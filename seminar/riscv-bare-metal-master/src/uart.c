@@ -16,8 +16,7 @@ void uart_init() {
 }
 
 static int ns16550a_putchar(int ch) {
-    while ((uart[UART_LSR] & UART_LSR_RI) == 0)
-        ;
+    while ((uart[UART_LSR] & UART_LSR_RI) == 0);
     return uart[UART_THR] = ch & 0xff;
 }
 
