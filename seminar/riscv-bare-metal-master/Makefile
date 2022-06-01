@@ -1,5 +1,5 @@
 SHELL = /bin/sh
-ARCH = riscv64-linux-gnu
+ARCH = ~/riscv/bin/riscv64-unknown-linux-gnu
 CC = $(ARCH)-gcc
 LD = $(ARCH)-ld
 OBJCOPY = $(ARCH)-objcopy
