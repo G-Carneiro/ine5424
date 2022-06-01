@@ -217,3 +217,11 @@ mstatus.MIE     <- mstatus.MPIE
 
 **`priv` refere-se ao nível de privilégio atual, o qual não é visível quando estamos operando nesse nível.**
 
+## Referências
+
+- The RISC-V Instruction Set Manual Volume II: Privileged Architecture
+- SiFive Interrupt Cookbook
+- SiFive FU540-C000 Manual
+- https://github.com/sifive
+- https://github.com/s094392/riscv-bare-metal
+- https://github.com/riscv-non-isa/riscv-asm-manual/blob/master/riscv-asm.md
