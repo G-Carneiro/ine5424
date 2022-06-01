@@ -34,8 +34,3 @@ clean:
 
 run: all
 	qemu-system-riscv64 -M virt -kernel kernel.img -bios none -serial stdio -display none
-
-debug: all
-	terminator -e "qemu-system-riscv64 -M virt -kernel kernel.img -bios none -serial stdio -s -S" --new-tab
-	terminator -e "riscv64-linux-gnu-gdb -x debug.txt" --new-tab
-
