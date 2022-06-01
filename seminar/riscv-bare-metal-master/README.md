@@ -1,10 +1,14 @@
-# RISCV Bare Metal
+# RISC-V Bare Metal
 
-A RISC-V bare-metal example with interrupt.
+Exemplo bare-metal de interrupção com CLINT no RISC-V.
 
-## Requirements
+## Requisitos
 - qemu
 - riscv64-linux-gnu-*
+
+### Makefile
+
+Alterar `ARCH =` para o caminho correto de acordo com sua instalação.
 
 ## Run
 ```bash
@@ -13,6 +17,6 @@ make
 make run
 ```
 
-## Results
+## Resultado
 
 ![result](result.png)
