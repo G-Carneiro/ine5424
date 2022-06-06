@@ -1,3 +1,13 @@
 ### idea template
 # Ignore all JetBrains IDE files
 .idea/
+*.vscode/
+*.o
+*.conf
+*.out
+*img
+eposcfg
+eposmkbi
+hello
+philosophers_dinner
+producer_consumer
