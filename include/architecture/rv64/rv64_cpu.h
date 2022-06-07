@@ -55,6 +55,8 @@ public:
         TVM             = 1 << 20,      // Trap Virtual Memory makes SATP inaccessible in supervisor mode
         TW              = 1 << 21,      // Timeout Wait for WFI outside machine mode
         TSR             = 1 << 22,      // Trap SRet in supervisor mode
+        UXL             = 1UL << 32,
+        SXL             = 1UL << 34,
         SD              = 1UL << (Traits<CPU>::WORD_SIZE - 1),      // Status Dirty = (FS | XS)
     };
 
