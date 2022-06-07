@@ -3,3 +3,5 @@
 - hysterically_debugged? 
   - `*_traits.h`
 - philosophers_dinner com problema nos prints (somente rv64)
+- "cc" dentro do `ASM`.
+  - `rv64_cpu.h` linha 332.
