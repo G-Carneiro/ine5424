@@ -424,35 +424,35 @@ if(interrupt) {
 
     ASM("       csrr     x3,  mstatus           \n");
 
-    ASM("       sd       x3,    4(sp)           \n"     // push ST
-        "       sd       x1,    8(sp)           \n"     // push RA
-        "       sd       x5,   12(sp)           \n"     // push x5-x31
-        "       sd       x6,   16(sp)           \n"
-        "       sd       x7,   20(sp)           \n"
-        "       sd       x8,   24(sp)           \n"
-        "       sd       x9,   28(sp)           \n"
-        "       sd      x10,   32(sp)           \n"
-        "       sd      x11,   36(sp)           \n"
-        "       sd      x12,   40(sp)           \n"
-        "       sd      x13,   44(sp)           \n"
-        "       sd      x14,   48(sp)           \n"
-        "       sd      x15,   52(sp)           \n"
-        "       sd      x16,   56(sp)           \n"
-        "       sd      x17,   60(sp)           \n"
-        "       sd      x18,   64(sp)           \n"
-        "       sd      x19,   68(sp)           \n"
-        "       sd      x20,   72(sp)           \n"
-        "       sd      x21,   76(sp)           \n"
-        "       sd      x22,   80(sp)           \n"
-        "       sd      x23,   84(sp)           \n"
-        "       sd      x24,   88(sp)           \n"
-        "       sd      x25,   92(sp)           \n"
-        "       sd      x26,   96(sp)           \n"
-        "       sd      x27,  100(sp)           \n"
-        "       sd      x28,  104(sp)           \n"
-        "       sd      x29,  108(sp)           \n"
-        "       sd      x30,  112(sp)           \n"
-        "       sd      x31,  116(sp)           \n");
+    ASM("       sd       x3,    8(sp)           \n"     // push ST
+        "       sd       x1,   16(sp)           \n"     // push RA
+        "       sd       x5,   24(sp)           \n"     // push x5-x31
+        "       sd       x6,   32(sp)           \n"
+        "       sd       x7,   40(sp)           \n"
+        "       sd       x8,   48(sp)           \n"
+        "       sd       x9,   56(sp)           \n"
+        "       sd      x10,   64(sp)           \n"
+        "       sd      x11,   72(sp)           \n"
+        "       sd      x12,   80(sp)           \n"
+        "       sd      x13,   88(sp)           \n"
+        "       sd      x14,   96(sp)           \n"
+        "       sd      x15,  104(sp)           \n"
+        "       sd      x16,  112(sp)           \n"
+        "       sd      x17,  120(sp)           \n"
+        "       sd      x18,  128(sp)           \n"
+        "       sd      x19,  136(sp)           \n"
+        "       sd      x20,  144(sp)           \n"
+        "       sd      x21,  152(sp)           \n"
+        "       sd      x22,  160(sp)           \n"
+        "       sd      x23,  168(sp)           \n"
+        "       sd      x24,  176(sp)           \n"
+        "       sd      x25,  184(sp)           \n"
+        "       sd      x26,  192(sp)           \n"
+        "       sd      x27,  200(sp)           \n"
+        "       sd      x28,  208(sp)           \n"
+        "       sd      x29,  216(sp)           \n"
+        "       sd      x30,  224(sp)           \n"
+        "       sd      x31,  232(sp)           \n");
 }
 
 inline void CPU::Context::pop(bool interrupt)
@@ -463,40 +463,40 @@ if(interrupt) {
 }
     ASM("       csrw     mepc, x3               \n");   // MEPC = PC
 
-    ASM("       ld       x3,    4(sp)           \n");   // pop ST into TMP
+    ASM("       ld       x3,    8(sp)           \n");   // pop ST into TMP
 if(!interrupt) {
     ASM("       li       a0, 3 << 11            \n"     // use a0 as a second TMP, since it will be restored later
         "       or       x3, x3, a0             \n");   // mstatus.MPP is automatically cleared on mret, so we reset it to MPP_M here
 }
 
-    ASM("       ld       x1,    8(sp)           \n"     // pop RA
-        "       ld       x5,   12(sp)           \n"     // pop x5-x31
-        "       ld       x6,   16(sp)           \n"
-        "       ld       x7,   20(sp)           \n"
-        "       ld       x8,   24(sp)           \n"
-        "       ld       x9,   28(sp)           \n"
-        "       ld      x10,   32(sp)           \n"
-        "       ld      x11,   36(sp)           \n"
-        "       ld      x12,   40(sp)           \n"
-        "       ld      x13,   44(sp)           \n"
-        "       ld      x14,   48(sp)           \n"
-        "       ld      x15,   52(sp)           \n"
-        "       ld      x16,   56(sp)           \n"
-        "       ld      x17,   60(sp)           \n"
-        "       ld      x18,   64(sp)           \n"
-        "       ld      x19,   68(sp)           \n"
-        "       ld      x20,   72(sp)           \n"
-        "       ld      x21,   76(sp)           \n"
-        "       ld      x22,   80(sp)           \n"
-        "       ld      x23,   84(sp)           \n"
-        "       ld      x24,   88(sp)           \n"
-        "       ld      x25,   92(sp)           \n"
-        "       ld      x26,   96(sp)           \n"
-        "       ld      x27,  100(sp)           \n"
-        "       ld      x28,  104(sp)           \n"
-        "       ld      x29,  108(sp)           \n"
-        "       ld      x30,  112(sp)           \n"
-        "       ld      x31,  116(sp)           \n"
+    ASM("       ld       x1,   16(sp)           \n"     // pop RA
+        "       ld       x5,   24(sp)           \n"     // pop x5-x31
+        "       ld       x6,   32(sp)           \n"
+        "       ld       x7,   40(sp)           \n"
+        "       ld       x8,   48(sp)           \n"
+        "       ld       x9,   56(sp)           \n"
+        "       ld      x10,   64(sp)           \n"
+        "       ld      x11,   72(sp)           \n"
+        "       ld      x12,   80(sp)           \n"
+        "       ld      x13,   88(sp)           \n"
+        "       ld      x14,   96(sp)           \n"
+        "       ld      x15,  104(sp)           \n"
+        "       ld      x16,  112(sp)           \n"
+        "       ld      x17,  120(sp)           \n"
+        "       ld      x18,  128(sp)           \n"
+        "       ld      x19,  136(sp)           \n"
+        "       ld      x20,  144(sp)           \n"
+        "       ld      x21,  152(sp)           \n"
+        "       ld      x22,  160(sp)           \n"
+        "       ld      x23,  168(sp)           \n"
+        "       ld      x24,  176(sp)           \n"
+        "       ld      x25,  184(sp)           \n"
+        "       ld      x26,  192(sp)           \n"
+        "       ld      x27,  200(sp)           \n"
+        "       ld      x28,  208(sp)           \n"
+        "       ld      x29,  216(sp)           \n"
+        "       ld      x30,  224(sp)           \n"
+        "       ld      x31,  232(sp)           \n"
         "       addi    sp, sp, %0              \n" : : "i"(sizeof(Context))); // complete the pops above by adjusting SP
 
     ASM("       csrw    mstatus, x3             \n");   // MSTATUS = ST
