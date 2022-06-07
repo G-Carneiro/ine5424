@@ -2,3 +2,4 @@
   - `riscv_ic.h` linha 34
 - hysterically_debugged? 
   - `*_traits.h`
+- philosophers_dinner com problema nos prints (somente rv64)
