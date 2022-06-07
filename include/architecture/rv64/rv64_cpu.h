@@ -57,6 +57,7 @@ public:
         TSR             = 1 << 22,      // Trap SRet in supervisor mode
         SD              = 1 << 31,      // Status Dirty = (FS | XS)
     };
+    // FIXME: SD for 64
 
     // Interrupt-Enable, Interrupt-Pending and Machine Cause Registers ([m|s]ie, [m|s]ip, and [m|s]cause when interrupt bit is set)
     enum {
