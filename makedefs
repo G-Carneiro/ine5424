@@ -222,8 +222,9 @@ riscv_AS_FLAGS      := -march=rv32gc -mabi=ilp32d
 riscv_LD_FLAGS      := -m elf32lriscv_ilp32f --no-relax
 riscv_EMULATOR		= qemu-system-riscv32 $(QEMU_DEBUG) -machine virt -cpu rv32 -smp $(CPUS) -m $(MEM_SIZE)k -serial mon:stdio -bios none -nographic -no-reboot $(BOOT_ROM) -kernel 
 endif 
-riscv_DEBUGGER		:= $(COMP_PREFIX)gdb
-riscv_FLASHER		:= 
+#riscv_DEBUGGER		:= $(COMP_PREFIX)gdb
+riscv_DEBUGGER		:= gdb-multiarch -ex "set architecture riscv:rv64"
+riscv_FLASHER		:=
 riscv_MAGIC		:= --nmagic
 riscv_CODE_NAME		:= .init
 riscv_DATA_NAME		:= .data
