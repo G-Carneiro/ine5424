@@ -5,3 +5,5 @@
 - philosophers_dinner com problema nos prints (somente rv64)
 - "cc" dentro do `ASM`.
   - `rv64_cpu.h` linha 332.
+- como saber que thread esta IO bound
+- o que eh a propriedade timed de um scheduler
