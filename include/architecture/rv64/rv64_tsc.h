@@ -39,6 +39,7 @@ public:
 private:
     static void init() {}
 
+    // TODO: conferir
     static volatile CPU::Reg64 & reg(unsigned int o) { return reinterpret_cast<volatile CPU::Reg64 *>(Memory_Map::CLINT_BASE)[o / sizeof(CPU::Reg64)]; }
 };
 
