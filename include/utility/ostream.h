@@ -15,6 +15,7 @@ __BEGIN_UTIL
 
 class OStream
 {
+    friend class IOBound;
 public:
     struct Begl {};
     struct Endl {};
@@ -148,7 +149,10 @@ public:
     }
 
 private:
-    void print(const char * s) { _print(s); }
+    void print(const char * s) {
+        Thread::priority().award();
+        _print(s);
+    }
 
     int itoa(int v, char * s);
     int utoa(unsigned int v, char * s, unsigned int i = 0);
