@@ -13,6 +13,6 @@ FCFS::FCFS(int p, Tn & ... an): Priority((p == IDLE) ? IDLE : Alarm::elapsed()) 
 template FCFS::FCFS<>(int p);
 
 
-IOBound::IOBound(int p, Tn & ... an): Priority( p ) {}
+//IOBound::IOBound(int p, Tn & ... an): Priority( p ) {}
 
 __END_SYS
