@@ -2,6 +2,7 @@
 
 #include <utility/ostream.h>
 #include <architecture/cpu.h>
+#include <process.h>
 
 __BEGIN_UTIL
 
@@ -101,6 +102,14 @@ int OStream::ptoa(const void * p, char * s)
         s[2 + sizeof(void *) * 2 - 1 - j] = _digits[v & 0xf];
 
     return j + 2;
+}
+
+void OStream::print(const char * s) {
+    // TODO: Chamar award aqui
+    Thread::self();
+    // Thread::self()->criterion().award();//.criterion().award();
+    // Thread::Criterion::award();
+    _print(s);
 }
 
 __END_UTIL

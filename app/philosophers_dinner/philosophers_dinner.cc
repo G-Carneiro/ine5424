@@ -79,6 +79,10 @@ int philosopher(int n, int l, int c)
         table.lock();
         Display::position(l, c);
         cout << "thinking";
+
+        int auxi = Thread::self()->priority();
+        cout << " RANK:" << auxi;
+
         table.unlock();
 
         Delay thinking(1000000);

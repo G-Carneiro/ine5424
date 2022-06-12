@@ -15,7 +15,7 @@ __BEGIN_UTIL
 
 class OStream
 {
-//    friend class IOBound;
+   friend class Thread;
 public:
     struct Begl {};
     struct Endl {};
@@ -149,9 +149,9 @@ public:
     }
 
 private:
-    void print(const char * s) { _print(s); }
-//    void print(const char * s) {
-//        Thread::priority().award();
+    // void print(const char * s) { _print(s); }
+   void print(const char * s);// {
+//        Thread::self();//.criterion().award();
 //        _print(s);
 //    }
 
