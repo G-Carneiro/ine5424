@@ -145,22 +145,23 @@ public:
     FCFS(int p = NORMAL, Tn & ... an);
 };
 
-//class IOBound : public Priority
-//{
-//public:
-//    static const bool timed = true;
-//    static const bool dynamic = true;
-//    static const bool preemptive = false;
-//
-//public:
-//    template <typename ... Tn>
-//    IOBound(int p = NORMAL, Tn & ... an);
-//
-//    bool award(bool end = false)
-//    {
-//        _priority--;
-//    }
-//};
+class IOBound : public Priority
+{
+public:
+    static const bool timed = true;
+    static const bool dynamic = true;
+    static const bool preemptive = false;
+
+public:
+    template <typename ... Tn>
+    IOBound(int p = NORMAL, Tn & ... an);
+
+    bool award(bool end = false)
+    {
+        _priority--;
+        return true;
+    }
+};
 
 __END_SYS
 
