@@ -125,6 +125,7 @@ __END_SYS
 
 static void print_context() {
     __USING_SYS
+    // TODO: pq o 32? talvez precisemos alterar para 64
     db<IC, System>(TRC) << "IC::leave:ctx=" << *reinterpret_cast<CPU::Context *>(CPU::sp() + 32) << endl;
     CPU::fr(0);
 }
