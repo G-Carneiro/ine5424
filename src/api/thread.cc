@@ -15,6 +15,9 @@ volatile unsigned int Thread::_thread_count;
 Scheduler_Timer * Thread::_timer;
 Scheduler<Thread> Thread::_scheduler;
 
+TSC::Time_Stamp current = TSC::time_stamp();  // read pmu mtime
+TSC::Time_Stamp elapsed = current;
+TSC::Time_Stamp last_dispatch = current;
 
 void Thread::constructor_prologue(unsigned int stack_size)
 {
@@ -246,8 +249,10 @@ void Thread::exit(int status)
 
 void Thread::sleep(Queue * q)
 {
-    Thread::self()->criterion().award();
-
+    if (Criterion::awarding) {
+        Thread::self()->criterion().award(); // awarding those who sleep
+    }
+    
     db<Thread>(TRC) << "Thread::sleep(running=" << running() << ",q=" << q << ")" << endl;
 
     assert(locked()); // locking handled by caller
@@ -326,6 +331,13 @@ void Thread::time_slicer(IC::Interrupt_Id i)
 
 void Thread::dispatch(Thread * prev, Thread * next, bool charge)
 {
+    if (Criterion::charging) {
+        current = TSC::time_stamp();
+        elapsed = current - last_dispatch;
+        last_dispatch = current;
+
+        Thread::self()->criterion().charge(elapsed);   
+    }
     // "next" is not in the scheduler's queue anymore. It's already "chosen"
 
     if(charge) {
