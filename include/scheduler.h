@@ -148,10 +148,19 @@ public:
 class IOBound : public Priority
 {
 public:
+    enum : int {
+        MAIN   = 0,
+        HIGH   = 1,
+        NORMAL = 10,
+        LOW    = (unsigned(1) << (sizeof(int) * 8 - 1)) - 2,
+        IDLE   = (unsigned(1) << (sizeof(int) * 8 - 1)) - 1
+    };
+
     static const bool timed = true;
     static const bool dynamic = true;
     static const bool preemptive = false;
     static const bool awarding = true;
+    static const bool charging = true;
 
 public:
     template <typename ... Tn>
@@ -159,7 +168,15 @@ public:
 
     bool award(bool end = false)
     {
-        _priority--;
+        _priority -= 10;
+        return true;
+    }
+
+    bool charge(int charge) {
+        if (_priority == IDLE || _priority == MAIN) {
+            return true;
+        }
+        _priority = _priority + charge;
         return true;
     }
 };

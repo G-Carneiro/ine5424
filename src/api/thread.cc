@@ -15,6 +15,9 @@ volatile unsigned int Thread::_thread_count;
 Scheduler_Timer * Thread::_timer;
 Scheduler<Thread> Thread::_scheduler;
 
+TSC::Time_Stamp current = TSC::time_stamp();  // read pmu mtime
+TSC::Time_Stamp elapsed = current;
+TSC::Time_Stamp last_dispatch = current;
 
 void Thread::constructor_prologue(unsigned int stack_size)
 {
@@ -332,6 +335,14 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
     if(charge) {
         if(Criterion::timed)
             _timer->restart();
+
+        if (Criterion::charging) {
+            current = TSC::time_stamp();
+            elapsed = current - last_dispatch;
+            last_dispatch = current;
+
+            Thread::self()->criterion().charge(elapsed);
+        }
     }
 
     if(prev != next) {
