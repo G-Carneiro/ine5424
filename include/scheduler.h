@@ -176,7 +176,6 @@ public:
             return true;
         }
         _priority = _priority + charge;
-        if (_priority < 0) _priority = -_priority;
         return true;
     }
 };
