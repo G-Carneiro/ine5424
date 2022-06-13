@@ -11,3 +11,4 @@ eposmkbi
 hello
 philosophers_dinner
 producer_consumer
+app/*_test/

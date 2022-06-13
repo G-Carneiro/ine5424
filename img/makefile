@@ -84,7 +84,7 @@ endif
 
 debug:		$(IMAGE)
 ifeq ($(NODES),1)
-		$(EMULATOR)$(IMAGE) | $(TEE) $(OUTPUT) &
+		$(EMULATOR) $(IMAGE) | $(TEE) $(OUTPUT) &
 		$(DEBUGGER)
 else
 		$(TERM) "$(EMULATOR)$(IMAGE) $(NETWORK) | $(TEE) $(OUTPUT) \

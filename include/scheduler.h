@@ -151,6 +151,7 @@ public:
     static const bool timed = true;
     static const bool dynamic = true;
     static const bool preemptive = false;
+    static const bool awarding = true;
 
 public:
     template <typename ... Tn>
@@ -158,7 +159,10 @@ public:
 
     bool award(bool end = false)
     {
+        // Prioridades menores são executadas antes.
+//        if (end) {
         _priority--;
+//        }
         return true;
     }
 };
