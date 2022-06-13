@@ -159,10 +159,7 @@ public:
 
     bool award(bool end = false)
     {
-        // Prioridades menores são executadas antes.
-//        if (end) {
         _priority--;
-//        }
         return true;
     }
 };

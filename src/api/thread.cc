@@ -246,6 +246,9 @@ void Thread::exit(int status)
 
 void Thread::sleep(Queue * q)
 {
+    if (Criterion::awarding)
+        Thread::self()->criterion().award();
+
     db<Thread>(TRC) << "Thread::sleep(running=" << running() << ",q=" << q << ")" << endl;
 
     assert(locked()); // locking handled by caller
@@ -329,14 +332,6 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
     if(charge) {
         if(Criterion::timed)
             _timer->restart();
-
-//        if(Criterion::awarding) {
-//            next->criterion().award();
-//            if(Criterion::cpu_wide)
-//                for_all_threads(&charger);
-//            next->criterion().award(true);
-//        }
-
     }
 
     if(prev != next) {
