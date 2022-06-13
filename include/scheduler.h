@@ -114,8 +114,7 @@ public:
     Priority(int p = NORMAL, Tn & ... an): _priority(p) {}
 
     operator const volatile int() const volatile { return _priority; }
-
-protected:
+    
     volatile int _priority;
 };
 

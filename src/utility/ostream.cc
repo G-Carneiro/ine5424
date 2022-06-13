@@ -105,10 +105,6 @@ int OStream::ptoa(const void * p, char * s)
 }
 
 void OStream::print(const char * s) {
-    // TODO: Chamar award aqui
-    Thread::self();
-    // Thread::self()->criterion().award();//.criterion().award();
-    // Thread::Criterion::award();
     _print(s);
 }
 

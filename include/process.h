@@ -89,11 +89,12 @@ public:
     static void yield();
     static void exit(int status = 0);
 
+    Criterion & criterion() { return const_cast<Criterion &>(_link.rank()); }
+
 protected:
     void constructor_prologue(unsigned int stack_size);
     void constructor_epilogue(Log_Addr entry, unsigned int stack_size);
 
-    Criterion & criterion() { return const_cast<Criterion &>(_link.rank()); }
     Queue::Element * link() { return &_link; }
 
     static Thread * volatile running() { return _scheduler.chosen(); }
