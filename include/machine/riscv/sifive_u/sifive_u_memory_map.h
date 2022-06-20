@@ -10,7 +10,7 @@ __BEGIN_SYS
 struct Memory_Map
 {
 private:
-    static const bool emulated = (Traits<Build>::ARCHITECTURE != Traits<Build>::RV64); // specifying a SiFive-U with RV32 sets QEMU machine to Virt
+    static const bool emulated = (Traits<CPU>::WORD_SIZE != 64); // specifying a SiFive-U with RV32 sets QEMU machine to Virt
 
 public:
     enum : unsigned long {

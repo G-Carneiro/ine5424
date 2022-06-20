@@ -4,7 +4,7 @@
 
 __BEGIN_SYS
 
-const RV64_PMU::Event RV64_PMU::_events[EVENTS] = {
+const RV32_PMU::Event RV32_PMU::_events[EVENTS] = {
     TIME,                                       // CPU_CYCLES
     CYCLES,                                     // UNHALTED_CYCLES
 

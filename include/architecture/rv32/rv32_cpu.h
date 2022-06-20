@@ -5,8 +5,6 @@
 
 #include <architecture/cpu.h>
 
-extern "C" { void _int_leave(); }
-
 __BEGIN_SYS
 
 class CPU: protected CPU_Common
@@ -215,7 +213,6 @@ public:
     static void fr(Reg r) {  ASM("mv a0, %0" : : "r"(r) :); }
 
     static unsigned int id() { return 0; }
-
     static unsigned int cores() { return 1; }
 
     using CPU_Common::clock;
@@ -276,8 +273,6 @@ public:
         return old;
     }
 
-    static void smp_barrier(unsigned long cores = CPU::cores()) {}
-
     static void flush_tlb() {         ASM("sfence.vma"    : :           : "memory"); }
     static void flush_tlb(Reg addr) { ASM("sfence.vma %0" : : "r"(addr) : "memory"); }
 
@@ -305,9 +300,6 @@ public:
         sp -= sizeof(Context);
         Context * ctx = new(sp) Context(entry, exit);
         init_stack_helper(&ctx->_x10, an ...); // x10 is a0
-        sp -= sizeof(Context);
-        ctx = new(sp) Context(&_int_leave, 0); // this context will be popped by switch() to reach _int_leave(), which will activate the thread's context
-        ctx->_x10 = 0; // zero fr() for the pop(true) issued by _int_leave()
         return ctx;
     }
 

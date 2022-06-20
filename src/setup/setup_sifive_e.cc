@@ -47,8 +47,6 @@ private:
     void say_hi();
     void call_next();
 
-    void panic() { Machine::panic(); }
-
 private:
     System_Info * si;
 };
@@ -80,12 +78,8 @@ void Setup::say_hi()
     db<Setup>(TRC) << "Setup::say_hi()" << endl;
     db<Setup>(INF) << "System_Info=" << *si << endl;
 
-    kout << endl;
-
-    if(si->bm.application_offset == -1U) {
+    if(si->bm.application_offset == -1U)
         db<Setup>(ERR) << "No APPLICATION in boot image, you don't need EPOS!" << endl;
-        panic();
-    }
 
     kout << "This is EPOS!\n" << endl;
     kout << "Setting up this machine as follows: " << endl;
@@ -113,13 +107,10 @@ void Setup::say_hi()
 
 void Setup::call_next()
 {
-    // Check for next stage and obtain the entry point
-    Log_Addr pc = &_start;
-
     db<Setup>(INF) << "SETUP ends here!" << endl;
 
     // Call the next stage
-    static_cast<void (*)()>(pc)();
+    static_cast<void (*)()>(&_start)();
 
     // SETUP is now part of the free memory and this point should never be reached, but, just in case ... :-)
     db<Setup>(ERR) << "OS failed to init!" << endl;
@@ -147,5 +138,8 @@ void _entry() // machine mode
 
 void _setup() // supervisor mode
 {
+    kerr  << endl;
+    kout  << endl;
+
     Setup setup;
 }
