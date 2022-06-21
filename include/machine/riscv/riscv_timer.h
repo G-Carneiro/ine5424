@@ -45,8 +45,12 @@ protected:
             _channels[channel] = this;
         else
             db<Timer>(WRN) << "Timer not installed!"<< endl;
-
-        _current = _initial;
+        
+        // this way when we instantiate a timer we initiate all the core's tick counters
+        // keep in mind that all of the cores are attached to the same alarm handler so we
+        // will be calling handler Traits<Machine>::CPUS times more than if we had 1 cpu
+        for(unsigned int i = 0; i < Traits<Machine>::CPUS; i++)
+            _current[i] = _initial;
     }
 
 public:
@@ -56,13 +60,13 @@ public:
         _channels[_channel] = 0;
     }
 
-    Tick read() { return _current; }
+    Tick read() { return _current[CPU::mhartid()]; }
 
     int restart() {
         db<Timer>(TRC) << "Timer::restart() => {f=" << frequency() << ",h=" << reinterpret_cast<void *>(_handler) << ",count=" << _current << "}" << endl;
 
-        int percentage = _current * 100 / _initial;
-        _current = _initial;
+        int percentage = _current[CPU::mhartid()] * 100 / _initial;
+        _current[CPU::mhartid()] = _initial;
 
         return percentage;
     }
@@ -80,7 +84,7 @@ private:
     static volatile CPU::Reg32 & reg(unsigned int o) { return reinterpret_cast<volatile CPU::Reg32 *>(Memory_Map::CLINT_BASE)[o / sizeof(CPU::Reg32)]; }
 
     static void config(const Hertz & frequency) {
-        reg(MTIMECMP) = reg(MTIME) + (CLOCK / frequency);
+        reg(MTIMECMP + MTIMECMP_CORE_OFFSET * CPU::mhartid()) = reg(MTIME) + (CLOCK / frequency);
     }
 
     static void int_handler(Interrupt_Id i);
@@ -91,7 +95,7 @@ protected:
     unsigned int _channel;
     Tick _initial;
     bool _retrigger;
-    volatile Tick _current;
+    volatile Tick _current[Traits<Build>::CPUS];
     Handler _handler;
 
     static Timer * _channels[CHANNELS];
