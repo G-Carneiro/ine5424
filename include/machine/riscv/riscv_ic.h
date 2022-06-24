@@ -88,13 +88,12 @@ public:
     static const unsigned int EXCS = CPU::EXCEPTIONS;
     static const unsigned int IRQS = CLINT::IRQS;
     static const unsigned int INTS = EXCS + IRQS;
-    static const bool multitask = Traits<System>::multitask;
 
     using IC_Common::Interrupt_Id;
     using IC_Common::Interrupt_Handler;
 
     enum {
-        INT_SYS_TIMER = EXCS + (multitask ? IRQ_SUP_TIMER : IRQ_MAC_TIMER)
+        INT_SYS_TIMER = EXCS + IRQ_MAC_TIMER
     };
 
 public:
@@ -113,11 +112,7 @@ public:
 
     static void enable() {
         db<IC>(TRC) << "IC::enable()" << endl;
-        if (multitask) {
-            CPU::sie(CPU::SSI | CPU::STI | CPU::SEI);
-        } else {
-            CPU::mie(CPU::MSI | CPU::MTI | CPU::MEI);
-        }
+        CPU::mie(CPU::MSI | CPU::MTI | CPU::MEI);
     }
 
     static void enable(Interrupt_Id i) {
@@ -129,11 +124,7 @@ public:
 
     static void disable() {
         db<IC>(TRC) << "IC::disable()" << endl;
-        if (multitask) {
-            CPU::siec(CPU::SSI | CPU::STI | CPU::SEI);
-        } else {
-            CPU::miec(CPU::MSI | CPU::MTI | CPU::MEI);
-        }
+        CPU::miec(CPU::MSI | CPU::MTI | CPU::MEI);
     }
 
     static void disable(Interrupt_Id i) {
@@ -145,7 +136,7 @@ public:
 
     static Interrupt_Id int_id() {
         // Id is retrieved from [m|s]cause even if mip has the equivalent bit up, because only [m|s]cause can tell if it is an interrupt or an exception
-        Reg id = multitask ? CPU::scause() : CPU::mcause();
+        Reg id = CPU::mcause();
         if(id & INTERRUPT)
             return irq2int(id & INT_MASK);
         else
@@ -154,18 +145,6 @@ public:
 
     static int irq2int(int i) { return i + EXCS; }
     static int int2irq(int i) { return i - EXCS; }
-
-    // Inter-processor Interrupts
-    static void ipi(unsigned int cpu, Interrupt_Id i) {
-        db<IC>(TRC) << "IC::ipi(cpu=" << cpu << ",int=" << i << ")" << endl;
-        assert(i < INTS);
-        reg(MSIP + cpu * MSIP_CORE_OFFSET) = 1;
-    }
-
-    // end of interrupt
-    static void ipi_eoi(Interrupt_Id i) {
-        reg(MSIP + CPU::id() * MSIP_CORE_OFFSET) = 0;
-    }
 
 private:
     static void dispatch();
