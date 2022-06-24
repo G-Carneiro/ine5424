@@ -8,9 +8,13 @@ __BEGIN_SYS
 
 void System::init()
 {
-    if(Traits<Alarm>::enabled)
-        Alarm::init();
+    // somente hart 0 inicializa Alarm
+    if (CPU::mhartid() == 0) {
+        if (Traits<Alarm>::enabled)
+            Alarm::init();
+    }
 
+    // todas CPUs precisam inicializar Thread
     if(Traits<Thread>::enabled)
         Thread::init();
 }
