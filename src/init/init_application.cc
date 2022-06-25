@@ -27,6 +27,8 @@ public:
         } else
             for(unsigned int frames = MMU::allocable(); frames; frames = MMU::allocable())
                 System::_heap->free(MMU::alloc(frames), frames * sizeof(MMU::Page));
+
+        CPU::smp_barrier();
     }
 };
 
