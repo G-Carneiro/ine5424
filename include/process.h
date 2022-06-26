@@ -9,7 +9,11 @@
 #include <utility/handler.h>
 #include <scheduler.h>
 
-extern "C" { void __exit(); }
+extern "C" {
+    void __exit();
+    void _lock_heap();
+    void _unlock_heap();
+}
 
 __BEGIN_SYS
 
@@ -22,6 +26,8 @@ class Thread
     friend class Alarm;                 // for lock()
     friend class System;                // for init()
     friend class IC;                    // for link() for priority ceiling
+    friend void ::_lock_heap();         // for lock()
+    friend void ::_unlock_heap();       // for unlock()
 
 protected:
     static const bool smp = Traits<Thread>::smp;
@@ -99,14 +105,14 @@ protected:
 
     static Thread * volatile running() { return _scheduler.chosen(); }
 
-    static void lock() {
+    static void lock(Spin * lock = &_lock) {
         CPU::int_disable();
         if (smp)
-            _lock.acquire();
+            lock->acquire();
     }
-    static void unlock() {
+    static void unlock(Spin * lock = &_lock) {
         if (smp)
-            _lock.acquire();
+            lock->release();
         CPU::int_enable();
     }
     static bool locked() { return (smp) ? _lock.taken() : CPU::int_disabled(); }
@@ -138,7 +144,7 @@ protected:
     static volatile unsigned int _thread_count;
     static Scheduler_Timer * _timer;
     static Scheduler<Thread> _scheduler;
-    static Atomic_Spin _lock;   // FIXME: Atomic_Spin ou Spin ?
+    static Spin _lock;
 };
 
 
