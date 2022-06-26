@@ -128,8 +128,8 @@ using namespace EPOS::S;
 void _entry() // machine mode
 {
     // FIXME: isso precisa sair, mas por enquanto gera exceções
-    if(CPU::mhartid() != 0)                             // SiFive-U requires 2 cores, so we disable core 1 here
-        CPU::halt();
+//    if(CPU::mhartid() != 0)                             // SiFive-U requires 2 cores, so we disable core 1 here
+//        CPU::halt();
 
     CPU::mstatusc(CPU::MIE);                            // disable interrupts (they will be reenabled at Init_End)
     CPU::mies(CPU::MSI | CPU::MTI);                     // enable interrupts generation by CLINT and timer interrupt

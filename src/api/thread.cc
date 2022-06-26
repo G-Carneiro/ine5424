@@ -14,7 +14,7 @@ __BEGIN_SYS
 volatile unsigned int Thread::_thread_count;
 Scheduler_Timer * Thread::_timer;
 Scheduler<Thread> Thread::_scheduler;
-Atomic_Spin _lock;   // FIXME: Atomic_Spin ou Spin ?
+Atomic_Spin Thread::_lock;   // FIXME: Atomic_Spin ou Spin ?
 
 
 void Thread::constructor_prologue(unsigned int stack_size)
