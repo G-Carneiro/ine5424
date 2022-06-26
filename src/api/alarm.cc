@@ -10,7 +10,7 @@ __BEGIN_SYS
 Alarm_Timer * Alarm::_timer;
 volatile Alarm::Tick Alarm::_elapsed;
 Alarm::Queue Alarm::_request;
-Atomic_Spin Alarm::_lock;
+Atomic_Spin Alarm::_lock;   // FIXME: Atomic_Spin ou Spin ?
 
 Alarm::Alarm(const Microsecond & time, Handler * handler, unsigned int times)
 : _time(time), _handler(handler), _times(times), _ticks(ticks(time)), _link(this, _ticks)

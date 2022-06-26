@@ -14,6 +14,7 @@ __BEGIN_SYS
 volatile unsigned int Thread::_thread_count;
 Scheduler_Timer * Thread::_timer;
 Scheduler<Thread> Thread::_scheduler;
+Atomic_Spin _lock;   // FIXME: Atomic_Spin ou Spin ?
 
 
 void Thread::constructor_prologue(unsigned int stack_size)
@@ -313,6 +314,25 @@ void Thread::reschedule()
     dispatch(prev, next);
 }
 
+// TODO: confirmar isso
+void Thread::reschedule(unsigned int cpu)
+{
+    assert(locked()); // locking handled by caller
+
+    if(!smp || (cpu == CPU::mhartid()))
+        reschedule();
+    else {
+        db<Thread>(TRC) << "Thread::reschedule(cpu=" << cpu << ")" << endl;
+        IC::ipi(cpu, IC::INT_RESCHEDULER);
+    }
+}
+
+void Thread::rescheduler(IC::Interrupt_Id i)
+{
+    lock();
+    reschedule();
+    unlock();
+}
 
 void Thread::time_slicer(IC::Interrupt_Id i)
 {
@@ -344,36 +364,43 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
         }
         db<Thread>(INF) << "Thread::dispatch:next={" << next << ",ctx=" << *next->_context << "}" << endl;
 
+        if (smp)
+            _lock.release();
+
         // The non-volatile pointer to volatile pointer to a non-volatile context is correct
         // and necessary because of context switches, but here, we are locked() and
         // passing the volatile to switch_constext forces it to push prev onto the stack,
         // disrupting the context (it doesn't make a difference for Intel, which already saves
         // parameters on the stack anyway).
         CPU::switch_context(const_cast<Context **>(&prev->_context), next->_context);
+        if (smp)
+            _lock.acquire();
     }
 }
 
 
 int Thread::idle()
 {
-    db<Thread>(TRC) << "Thread::idle(this=" << running() << ")" << endl;
+    db<Thread>(TRC) << "Thread::idle(cpu=" << CPU::id() << ",this=" << running() << ")" << endl;
 
-    while(_thread_count > 1) { // someone else besides idle
+    while(_thread_count > CPU::cores()) { // someone else besides idle
         if(Traits<Thread>::trace_idle)
-            db<Thread>(TRC) << "Thread::idle(this=" << running() << ")" << endl;
+            db<Thread>(TRC) << "Thread::idle(cpu=" << CPU::id() << ",this=" << running() << ")" << endl;
 
         CPU::int_enable();
         CPU::halt();
     }
 
     CPU::int_disable();
-    db<Thread>(WRN) << "The last thread has exited!" << endl;
-    if(reboot) {
-        db<Thread>(WRN) << "Rebooting the machine ..." << endl;
-        Machine::reboot();
-    } else {
-        db<Thread>(WRN) << "Halting the machine ..." << endl;
-        CPU::halt();
+    if (CPU::mhartid() == 0) {
+        db<Thread>(WRN) << "The last thread has exited!" << endl;
+        if (reboot) {
+            db<Thread>(WRN) << "Rebooting the machine ..." << endl;
+            Machine::reboot();
+        } else {
+            db<Thread>(WRN) << "Halting the machine ..." << endl;
+            CPU::halt();
+        }
     }
 
     // Some machines will need a little time to actually reboot

@@ -93,7 +93,8 @@ public:
     using IC_Common::Interrupt_Handler;
 
     enum {
-        INT_SYS_TIMER = EXCS + IRQ_MAC_TIMER
+        INT_SYS_TIMER   = EXCS + IRQ_MAC_TIMER,
+        INT_RESCHEDULER = EXCS + IRQ_MAC_SOFT
     };
 
 public:

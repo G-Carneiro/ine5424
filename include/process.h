@@ -24,6 +24,7 @@ class Thread
     friend class IC;                    // for link() for priority ceiling
 
 protected:
+    static const bool smp = Traits<Thread>::smp;
     static const bool preemptive = Traits<Thread>::Criterion::preemptive;
     static const bool reboot = Traits<System>::reboot;
 
@@ -98,15 +99,25 @@ protected:
 
     static Thread * volatile running() { return _scheduler.chosen(); }
 
-    static void lock() { CPU::int_disable(); }
-    static void unlock() { CPU::int_enable(); }
-    static bool locked() { return CPU::int_disabled(); }
+    static void lock() {
+        CPU::int_disable();
+        if (smp)
+            _lock.acquire();
+    }
+    static void unlock() {
+        if (smp)
+            _lock.acquire();
+        CPU::int_enable();
+    }
+    static bool locked() { return (smp) ? _lock.taken() : CPU::int_disabled(); }
 
     static void sleep(Queue * q);
     static void wakeup(Queue * q);
     static void wakeup_all(Queue * q);
 
     static void reschedule();
+    static void reschedule(unsigned int cpu);
+    static void rescheduler(IC::Interrupt_Id interrupt);
     static void time_slicer(IC::Interrupt_Id interrupt);
 
     static void dispatch(Thread * prev, Thread * next, bool charge = true);
@@ -127,6 +138,7 @@ protected:
     static volatile unsigned int _thread_count;
     static Scheduler_Timer * _timer;
     static Scheduler<Thread> _scheduler;
+    static Atomic_Spin _lock;   // FIXME: Atomic_Spin ou Spin ?
 };
 
 

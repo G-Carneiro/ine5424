@@ -85,7 +85,7 @@ private:
     static Alarm_Timer * _timer;
     static volatile Tick _elapsed;
     static Queue _request;
-    static Atomic_Spin _lock;
+    static Atomic_Spin _lock;   // FIXME: Atomic_Spin ou Spin ?
 };
 
 
