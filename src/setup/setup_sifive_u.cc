@@ -135,8 +135,7 @@ void _entry() // machine mode
     CPU::mies(CPU::MSI | CPU::MTI);                     // enable interrupts generation by CLINT and timer interrupt
     CLINT::mtvec(CLINT::DIRECT, _int_entry);            // setup a preliminary machine mode interrupt handler pointing it to _int_entry
     
-    //essa linha nao funciona mas deve ser alterada
-    CPU::sp(Memory_Map::BOOT_STACK + (CPU::mhartid() + 1) * (Traits<Machine>::STACK_SIZE - sizeof(long))); 
+    CPU::sp(Memory_Map::BOOT_STACK + (CPU::mhartid() + 1) * (Traits<Machine>::STACK_SIZE - sizeof(long)));
     //CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE - sizeof(long)); // set the stack pointer, thus creating a stack for SETUP
 
     Machine::clear_bss();
