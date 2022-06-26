@@ -208,10 +208,10 @@ endif
 
 ifeq ($(MMOD),sifive_u)
 ifeq ($(ARCH),rv64)
-riscv_CC_FLAGS		:= -march=rv64gc -mabi=lp64d -Wl, -mno-relax -mcmodel=medany
+riscv_CC_FLAGS		:= -march=rv64gc -mabi=lp64d -Wl, -mno-relax -mcmodel=medany -g
 riscv_AS_FLAGS		:= -march=rv64gc -mabi=lp64d
-riscv_LD_FLAGS		:= -m elf64lriscv_lp64f --no-relax
-riscv_EMULATOR		= qemu-system-riscv64 $(QEMU_DEBUG) -machine sifive_u -smp 2 -m $(MEM_SIZE)k -serial mon:stdio -bios none -nographic -no-reboot $(BOOT_ROM) -kernel
+riscv_LD_FLAGS		:= -m elf64lriscv_lp64f --no-relax -g
+riscv_EMULATOR		= qemu-system-riscv64 $(QEMU_DEBUG) -machine sifive_u -smp 2 -m $(MEM_SIZE)k -serial mon:stdio -bios none -nographic -no-reboot $(BOOT_ROM) -kernel 
 else
 riscv_CC_FLAGS      := -march=rv32gc -mabi=ilp32d -Wl, -mno-relax
 riscv_AS_FLAGS      := -march=rv32gc -mabi=ilp32d
@@ -244,8 +244,7 @@ MACH_LD_FLAGS		:= $($(MACH)_LD_FLAGS)
 MACH_CODE_NAME		:= $($(MACH)_CODE_NAME)
 MACH_DATA_NAME		:= $($(MACH)_DATA_NAME)
 MACH_EMULATOR		= $($(MACH)_EMULATOR)
-MACH_DEBUGGER		:= $(TERM) $($(MACH)_DEBUGGER) -ex "target remote:1235" -ex "set confirm off"
-MACH_FLASHER		= $($(MACH)_FLASHER)
+MACH_DEBUGGER  := $(TERM) $($(MACH)_DEBUGGER) -ex "set confirm off" -ex "set arch riscv:rv64" -ex "set schedule-multiple on" -ex "target extended-remote localhost:1235" -ex "add-inferior" -ex "inferior 2" -ex "attach 2"
 MACH_MAGIC		:= $($(MACH)_MAGIC)
 MACH_IMGSUFF		:= $($(MACH)_IMG_SUFFIX)
 
@@ -267,7 +266,7 @@ TCPP		:= gcc -E
 TCPPFLAGS	:= -I$(INCLUDE)
 
 TLD		:= gcc
-TLDFLAGS	= $(CC_M_FLAG)
+TLDFLAGS	= $(CC_M_FLAG) -g
 
 # Tools and flags to compile applications
 ACC		= $(BIN)/eposcc $(MACH_CC_FLAGS)  -c -ansi -O
