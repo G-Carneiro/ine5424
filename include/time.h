@@ -61,10 +61,14 @@ private:
     static Tick ticks(const Microsecond & time) { return (time + timer_period() / 2) / timer_period(); }
 
     static void lock() {
-        _lock.acquire();
+        // FIXME: qual usar? usando _lock gera erros, mas parece mais correto
+        Thread::lock();
+//        _lock.acquire();
     }
     static void unlock() {
-        _lock.release();
+        // FIXME: qual usar? usando _lock gera erros, mas parece mais correto
+        Thread::unlock();
+//        _lock.release();
     }
 
     static void handler(IC::Interrupt_Id i);

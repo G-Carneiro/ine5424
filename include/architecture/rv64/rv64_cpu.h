@@ -212,8 +212,8 @@ public:
     static Reg fr() { Reg r; ASM("mv %0, a0" :  "=r"(r)); return r; }
     static void fr(Reg r) {  ASM("mv a0, %0" : : "r"(r) :); }
 
-    static unsigned int id() { return 0; }
-    static unsigned int cores() { return 1; }
+    static unsigned int id() { return mhartid(); }
+    static unsigned int cores() { return Traits<Build>::CPUS; }
 
     using CPU_Common::clock;
     using CPU_Common::min_clock;
@@ -271,6 +271,10 @@ public:
             "   bnez    t3, 1b          \n"
             "2:                         \n" : "=&r"(old) : "r"(&value), "r"(compare), "r"(replacement) : "t3", "cc", "memory");
         return old;
+    }
+
+    static void smp_barrier(unsigned long cores = CPU::cores()) {
+        CPU_Common::smp_barrier<&finc>(cores, id());
     }
 
     static void flush_tlb() {         ASM("sfence.vma"    : :           : "memory"); }
