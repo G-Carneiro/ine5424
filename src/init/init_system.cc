@@ -52,7 +52,7 @@ public:
             Timer::init();
         }
 
-        db<Init>(INF) << "Initializing system abstractions: " << endl;
+        db<Init>(TRC) << "Initializing system abstractions: " << endl;
         System::init();
 
         // somente hart 0 precisa fazer isso

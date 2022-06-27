@@ -11,9 +11,11 @@ Timer * Timer::_channels[CHANNELS];
 // Class methods
 void Timer::int_handler(Interrupt_Id i)
 {
-    if(_channels[ALARM] && (--_channels[ALARM]->_current[CPU::mhartid()] <= 0)) {
-        _channels[ALARM]->_current[CPU::mhartid()] = _channels[ALARM]->_initial;
-        _channels[ALARM]->_handler(i);
+    if (CPU::mhartid() == 0) {
+        if (_channels[ALARM] && (--_channels[ALARM]->_current[0] <= 0)) {
+            _channels[ALARM]->_current[0] = _channels[ALARM]->_initial;
+            _channels[ALARM]->_handler(i);
+        }
     }
 
     if(_channels[SCHEDULER] && (--_channels[SCHEDULER]->_current[CPU::mhartid()] <= 0)) {
