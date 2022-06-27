@@ -117,11 +117,11 @@ void Setup::call_next()
     db<Setup>(INF) << "SETUP ends here!" << endl;
 
     // Call the next stage
-//    if (CPU::mhartid() == 0) {
+    if (CPU::mhartid() == 0) {
         static_cast<void (*)()>(_start)();
-//    } else {
-//        static_cast<void (*)()>(_init)();
-//    }
+    } else {
+        static_cast<void (*)()>(_init)();
+    }
 
     // SETUP is now part of the free memory and this point should never be reached, but, just in case ... :-)
     db<Setup>(ERR) << "OS failed to init!" << endl;
@@ -133,9 +133,8 @@ using namespace EPOS::S;
 
 void _entry() // machine mode
 {
-    // FIXME: isso precisa sair, mas por enquanto gera exceções
-//    if(CPU::mhartid() != 0)                             // SiFive-U requires 2 cores, so we disable core 1 here
-//        CPU::halt();
+    if(CPU::mhartid() != 0)                             // SiFive-U requires 2 cores, so we disable core 1 here
+        CPU::halt();
 
     CPU::mstatusc(CPU::MIE);                            // disable interrupts (they will be reenabled at Init_End)
     CPU::mies(CPU::MSI | CPU::MTI);                     // enable interrupts generation by CLINT and timer interrupt

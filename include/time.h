@@ -62,13 +62,13 @@ private:
 
     static void lock() {
         // FIXME: qual usar? usando _lock gera erros, mas parece mais correto
-//        Thread::lock();
-        _lock.acquire();
+        Thread::lock();
+//        _lock.acquire();
     }
     static void unlock() {
         // FIXME: qual usar? usando _lock gera erros, mas parece mais correto
-//        Thread::unlock();
-        _lock.release();
+        Thread::unlock();
+//        _lock.release();
     }
 
     static void handler(IC::Interrupt_Id i);
