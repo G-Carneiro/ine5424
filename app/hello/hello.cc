@@ -6,7 +6,11 @@ OStream cout;
 
 int main()
 {
-    cout << "Hello world!" << endl;
-
+//    char hello[] = {'H', 'e', 'l', 'l', 'o', '\n'};
+//    Display::_print(hello);
+    int aaa;
+    aaa = CPU::mhartid();
+    cout << "Hello world! from core n# " << aaa << endl;
+    
     return 0;
 }

@@ -53,11 +53,9 @@ public:
 
         db<Init>(TRC) << "Initializing system abstractions: " << endl;
         System::init();
-        db<Init>(TRC) << "HART 2 SAFE" << endl;
 
         // somente hart 0 precisa fazer isso
         if (CPU::mhartid() == 0) {
-            db<Init>(TRC) << "making progress " << endl;
 
             // Randomize the Random Numbers Generator's seed
             if (Traits<Random>::enabled) {

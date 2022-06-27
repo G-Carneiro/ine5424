@@ -21,6 +21,9 @@ protected:
     Display_Common() {}
 
 public:
+//    static EPOS::S::Spin _uart_lock;
+//    static bool smp = Traits<Thread>::smp;
+//    
     static void putc(char c);
     static void puts(const char * s);
 
@@ -79,10 +82,22 @@ public:
             if(_column >= COLUMNS) scroll();
         }
     };
+//    
+//    static void _print(const char * s) {
+//        puts(s);
+//    }
 
     static void puts(const char * s) {
+//        CPU::int_disable();
+//        if (smp){
+//            _uart_lock.acquire();
+//        }
         while(*s != '\0')
             putc(*s++);
+//        if (smp){
+//            _uart_lock.release();
+//        }
+//        CPU::int_enable();
     }
 
     static void geometry(int * lines, int * columns) {

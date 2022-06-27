@@ -19,7 +19,6 @@ Spin Thread::_lock;
 
 void Thread::constructor_prologue(unsigned int stack_size)
 {
-    kout << "AAAAAAAAAAAAAAAAA" << endl;
     _thread_count++;
     _scheduler.insert(this);
     _stack = new (SYSTEM) char[stack_size];
@@ -28,6 +27,7 @@ void Thread::constructor_prologue(unsigned int stack_size)
 
 void Thread::constructor_epilogue(Log_Addr entry, unsigned int stack_size)
 {
+//    lock();
     db<Thread>(TRC) << "Thread(entry=" << entry
                     << ",state=" << _state
                     << ",priority=" << _link.rank()
@@ -314,7 +314,7 @@ void Thread::reschedule()
     if(!Criterion::timed || Traits<Thread>::hysterically_debugged)
         db<Thread>(TRC) << "Thread::reschedule()" << endl;
 
-    assert(locked()); // locking handled by caller
+//    assert(locked()); // locking handled by caller
 
     Thread * prev = running();
     Thread * next = _scheduler.choose();
@@ -398,7 +398,6 @@ int Thread::idle()
         CPU::int_enable();
         CPU::halt();
     }
-
     CPU::int_disable();
     if (CPU::mhartid() == 0) {
         db<Thread>(WRN) << "The last thread has exited!" << endl;
