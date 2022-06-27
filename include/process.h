@@ -16,6 +16,7 @@ extern "C" {
 }
 
 __BEGIN_SYS
+extern OStream kout, kerr;
 
 class Thread
 {
@@ -107,12 +108,18 @@ protected:
 
     static void lock(Spin * lock = &_lock) {
         CPU::int_disable();
-        if (smp)
+        if (smp){
+            kout << "LOCK" << " : " << CPU::mhartid() << endl;
             lock->acquire();
+            kout << "AFTERLOCK" << endl;
+        }
     }
     static void unlock(Spin * lock = &_lock) {
-        if (smp)
+        if (smp) {
+            kout << "UNLK" << " : " << CPU::mhartid() << endl;
             lock->release();
+            kout << "AFTERULK" << endl;
+        }
         CPU::int_enable();
     }
     static bool locked() { return (smp) ? _lock.taken() : CPU::int_disabled(); }

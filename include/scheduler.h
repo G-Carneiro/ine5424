@@ -164,6 +164,7 @@ class GRR: public RR
 {
 public:
     static const unsigned int HEADS = Traits<Machine>::CPUS;
+    static const bool timed = false;
 
 public:
     template <typename ... Tn>

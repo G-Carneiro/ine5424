@@ -4,6 +4,7 @@
 #include <machine/timer.h>
 
 __BEGIN_SYS
+extern OStream kout, kerr;
 
 // Class attributes
 Timer * Timer::_channels[CHANNELS];
@@ -11,8 +12,9 @@ Timer * Timer::_channels[CHANNELS];
 // Class methods
 void Timer::int_handler(Interrupt_Id i)
 {
+//    kout << "calling this crap" << endl;
     if(_channels[ALARM] && (--_channels[ALARM]->_current[CPU::mhartid()] <= 0)) {
-        _channels[ALARM]->_current[CPU::mhartid()] = _channels[ALARM]->_initial;
+        _channels[ALARM]->_current[0] = _channels[ALARM]->_initial;
         _channels[ALARM]->_handler(i);
     }
 

@@ -13,7 +13,6 @@ void System::init()
         if (Traits<Alarm>::enabled)
             Alarm::init();
     }
-
     // todas CPUs precisam inicializar Thread
     if(Traits<Thread>::enabled)
         Thread::init();

@@ -18,6 +18,7 @@ void Timer::init()
 
     reset();
     IC::enable(IC::INT_SYS_TIMER);
+    db<Init, Timer>(TRC) << "Timer::end_init()" << endl;
 }
 
 __END_SYS

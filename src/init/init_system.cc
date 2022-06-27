@@ -18,7 +18,7 @@ public:
         db<Init>(TRC) << "Init_System()" << endl;
 
         // garante que todas CPUs estejam no mesmo ponto
-        CPU::smp_barrier();
+        db<Init>(TRC) << "after barrier" << endl;
 
         db<Init>(INF) << "Init:si=" << *System::info() << endl;
 
@@ -27,7 +27,7 @@ public:
             db<Init>(INF) << "Initializing the architecture: " << endl;
             CPU::init();
 
-            db<Init>(INF) << "Initializing system's heap: " << endl;
+            db<Init>(TRC) << "Initializing system's heap: " << endl;
             if (Traits<System>::multiheap) {
                 System::_heap_segment = new(&System::_preheap[0]) Segment(HEAP_SIZE, Segment::Flags::SYS);
                 char *heap;
@@ -41,25 +41,26 @@ public:
             } else
                 System::_heap = new(&System::_preheap[0]) Heap(MMU::alloc(MMU::pages(HEAP_SIZE)), HEAP_SIZE);
 
-            db<Init>(INF) << "Initializing the machine: " << endl;
+            db<Init>(TRC) << "Initializing the machine: " << endl;
             Machine::init();
-
-            CPU::smp_barrier(); // sinaliza para demais CPUs
+            
         } else {
-            CPU::smp_barrier();
-
             CPU::init();
             Timer::init();
         }
+        CPU::smp_barrier();
+//        CPU::smp_barrier();
 
-        db<Init>(INF) << "Initializing system abstractions: " << endl;
+        db<Init>(TRC) << "Initializing system abstractions: " << endl;
         System::init();
 
         // somente hart 0 precisa fazer isso
         if (CPU::mhartid() == 0) {
+            db<Init>(TRC) << "making progress " << endl;
+
             // Randomize the Random Numbers Generator's seed
             if (Traits<Random>::enabled) {
-                db<Init>(INF) << "Randomizing the Random Numbers Generator's seed." << endl;
+                db<Init>(TRC) << "Randomizing the Random Numbers Generator's seed." << endl;
                 if (Traits<TSC>::enabled)
                     Random::seed(TSC::time_stamp());
 

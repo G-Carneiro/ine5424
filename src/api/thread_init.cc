@@ -11,9 +11,9 @@ extern "C" { void __epos_app_entry(); }
 
 void Thread::init()
 {
-    db<Init, Thread>(TRC) << "Thread::init()" << endl;
-    CPU::smp_barrier();
-
+    db<Init, Thread>(TRC) << "Thread::init(" << CPU::mhartid() << ")" << endl;
+    Thread::lock();
+    db<Init, Thread>(TRC) << "between lock(" << CPU::mhartid() << ")" << endl;
     if (CPU::mhartid() == 0) {
         Criterion::init();
 
@@ -22,16 +22,16 @@ void Thread::init()
         // If EPOS is a library, then adjust the application entry point to __epos_app_entry, which will directly call main().
         // In this case, _init will have already been called, before Init_Application to construct MAIN's global objects.
         Main *main = reinterpret_cast<Main *>(__epos_app_entry);
-
+        
         new(SYSTEM) Thread(Thread::Configuration(Thread::RUNNING, Thread::MAIN), main);
 
         // Idle thread creation does not cause rescheduling (see Thread::constructor_epilogue)
         new(SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
+        
     } else {
-        new (SYSTEM) Thread(Thread::Configuration(Thread::RUNNING, Thread::IDLE), &Thread::idle);
+        new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
     }
 
-    CPU::smp_barrier();
 
     // The installation of the scheduler timer handler does not need to be done after the
     // creation of threads, since the constructor won't call reschedule() which won't call
@@ -52,9 +52,13 @@ void Thread::init()
         IC::enable(IC::INT_RESCHEDULER);
     }
 
-    CPU::smp_barrier();
     // Transition from CPU-based locking to thread-based locking
-    This_Thread::not_booting();
+//    This_Thread::not_booting();
+    db<Init, Thread>(TRC) << "before unlock(" << CPU::mhartid() << ")" << endl;
+
+    Thread::unlock();
+    db<Init, Thread>(TRC) << "after unlock(" << CPU::mhartid() << ")" << endl;
+
 }
 
 __END_SYS
