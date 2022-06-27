@@ -44,9 +44,9 @@ public:
             db<Init>(INF) << "Initializing the machine: " << endl;
             Machine::init();
 
-            CPU::smp_barrier(); // sinaliza para demais CPUs
+//            CPU::smp_barrier(); // sinaliza para demais CPUs
         } else {
-            CPU::smp_barrier();
+//            CPU::smp_barrier();
 
             CPU::init();
             Timer::init();

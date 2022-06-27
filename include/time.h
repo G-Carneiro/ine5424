@@ -62,13 +62,13 @@ private:
 
     static void lock() {
         // FIXME: qual usar? usando _lock gera erros, mas parece mais correto
-        Thread::lock();
-//        _lock.acquire();
+//        Thread::lock();
+        _lock.acquire();
     }
     static void unlock() {
         // FIXME: qual usar? usando _lock gera erros, mas parece mais correto
-        Thread::unlock();
-//        _lock.release();
+//        Thread::unlock();
+        _lock.release();
     }
 
     static void handler(IC::Interrupt_Id i);
@@ -85,7 +85,7 @@ private:
     static Alarm_Timer * _timer;
     static volatile Tick _elapsed;
     static Queue _request;
-    static Atomic_Spin _lock;   // FIXME: Atomic_Spin ou Spin ?
+    static Spin _lock;   // FIXME: Atomic_Spin ou Spin ?
 };
 
 
