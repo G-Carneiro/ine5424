@@ -7,7 +7,7 @@
 
 extern "C" {
     void _start();
-
+    void _init();
     void _int_entry();
 
     // SETUP entry point is in .init (and not in .text), so it will be linked first and will be the first function after the ELF header in the image
@@ -68,7 +68,9 @@ Setup::Setup()
     db<Setup>(INF) << "Setup:si=" << *si << endl;
 
     // Print basic facts about this EPOS instance
-    say_hi();
+    if (CPU::mhartid() == 0) {
+        say_hi();
+    }
 
     // SETUP ends here, so let's transfer control to the next stage (INIT or APP)
     call_next();
@@ -115,7 +117,11 @@ void Setup::call_next()
     db<Setup>(INF) << "SETUP ends here!" << endl;
 
     // Call the next stage
-    static_cast<void (*)()>(_start)();
+//    if (CPU::mhartid() == 0) {
+        static_cast<void (*)()>(_start)();
+//    } else {
+//        static_cast<void (*)()>(_init)();
+//    }
 
     // SETUP is now part of the free memory and this point should never be reached, but, just in case ... :-)
     db<Setup>(ERR) << "OS failed to init!" << endl;
@@ -138,9 +144,11 @@ void _entry() // machine mode
     CPU::sp(Memory_Map::BOOT_STACK + (CPU::mhartid() + 1) * (Traits<Machine>::STACK_SIZE - sizeof(long)));
     //CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE - sizeof(long)); // set the stack pointer, thus creating a stack for SETUP
 
-    Machine::clear_bss();
+    if (CPU::mhartid() == 0) {
+        Machine::clear_bss();
+    }
 
-    CPU::mstatus(CPU::MPP_M);                           // stay in machine mode at mret
+    CPU::mstatus(CPU::MPP_M | CPU::MPIE);               // stay in machine mode at mret
 
     CPU::mepc(CPU::Reg(&_setup));                       // entry = _setup
     CPU::mret();                                        // enter supervisor mode at setup (mepc) with interrupts enabled (mstatus.mpie = true)

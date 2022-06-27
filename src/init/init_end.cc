@@ -39,6 +39,7 @@ public:
 
         // Interrupts have been disable at Thread::init() and will be reenabled by CPU::Context::load()
         // but we first reset the timer to avoid getting a time interrupt during load()
+        // TODO: somente a hart 0?
         if(Traits<Timer>::enabled)
             Timer::reset();
 

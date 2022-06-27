@@ -32,7 +32,8 @@ public:
     static const UUID & uuid() { return System::info()->bm.uuid; }
 
 private:
-    static void pre_init(System_Info * si) {}
+    static void smp_barrier_init(unsigned int n_cpus);
+    static void pre_init(System_Info * si);
     static void init();
 };
 
