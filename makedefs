@@ -269,7 +269,7 @@ TCPP		:= gcc -E
 TCPPFLAGS	:= -I$(INCLUDE)
 
 TLD		:= gcc
-TLDFLAGS	= $(CC_M_FLAG)
+TLDFLAGS	= $(CC_M_FLAG) -g
 
 # Tools and flags to compile applications
 ACC		= $(BIN)/eposcc $(MACH_CC_FLAGS)  -c -ansi -O
