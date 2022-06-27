@@ -19,13 +19,10 @@ Spin Thread::_lock;
 
 void Thread::constructor_prologue(unsigned int stack_size)
 {
-    lock();
-
+    kout << "AAAAAAAAAAAAAAAAA" << endl;
     _thread_count++;
     _scheduler.insert(this);
-    Thread::lock();
     _stack = new (SYSTEM) char[stack_size];
-    Thread::unlock();
 }
 
 

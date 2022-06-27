@@ -109,16 +109,16 @@ protected:
     static void lock(Spin * lock = &_lock) {
         CPU::int_disable();
         if (smp){
-            kout << "LOCK" << " : " << CPU::mhartid() << endl;
+//            kout << "LOCK" << " : " << CPU::mhartid() << endl;
             lock->acquire();
-            kout << "AFTERLOCK" << endl;
+//            kout << "AFTERLOCK" << endl;
         }
     }
     static void unlock(Spin * lock = &_lock) {
         if (smp) {
-            kout << "UNLK" << " : " << CPU::mhartid() << endl;
+//            kout << "UNLK" << " : " << CPU::mhartid() << endl;
             lock->release();
-            kout << "AFTERULK" << endl;
+//            kout << "AFTERULK" << endl;
         }
         CPU::int_enable();
     }

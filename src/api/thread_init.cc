@@ -29,7 +29,9 @@ void Thread::init()
         new(SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
         
     } else {
-        new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
+        db<Init, Thread>(TRC) << "before idle(" << CPU::mhartid() << ")" << endl;
+        new (SYSTEM) Thread(Thread::Configuration(Thread::RUNNING, Thread::IDLE), &Thread::idle);
+        db<Init, Thread>(TRC) << "after idle(" << CPU::mhartid() << ")" << endl;
     }
 
 
