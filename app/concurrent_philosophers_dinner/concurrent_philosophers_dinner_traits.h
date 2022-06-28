@@ -10,16 +10,16 @@ template<> struct Traits<Build>: public Traits_Tokens
 {
     // Basic configuration
     static const unsigned int MODE = LIBRARY;
-    static const unsigned int ARCHITECTURE = RV32;
+    static const unsigned int ARCHITECTURE = RV64;
     static const unsigned int MACHINE = RISCV;
-    static const unsigned int MODEL = SiFive_E; 
+    static const unsigned int MODEL = SiFive_U;
     static const unsigned int CPUS = 1;
     static const unsigned int NODES = 1; // (> 1 => NETWORKING)
     static const unsigned int EXPECTED_SIMULATION_TIME = 60; // s (0 => not simulated)
 
     // Default flags
     static const bool enabled = true;
-    static const bool monitored = false;
+    static const bool monitored = true;
     static const bool debugged = true;
     static const bool hysterically_debugged = false;
 
@@ -103,7 +103,8 @@ template<> struct Traits<Application>: public Traits<Build>
 template<> struct Traits<System>: public Traits<Build>
 {
     static const unsigned int mode = Traits<Build>::MODE;
-    static const bool multithread = (Traits<Application>::MAX_THREADS > 1);
+    static const bool multithread = (Traits<Build>::CPUS > 1) || (Traits<Application>::MAX_THREADS > 1);
+    static const bool multicore = (Traits<Build>::CPUS > 1) && multithread;
     static const bool multiheap = Traits<Scratchpad>::enabled;
 
     static const unsigned long LIFE_SPAN = 1 * YEAR; // s
@@ -118,11 +119,12 @@ template<> struct Traits<System>: public Traits<Build>
 template<> struct Traits<Thread>: public Traits<Build>
 {
     static const bool enabled = Traits<System>::multithread;
+    static const bool smp = Traits<System>::multicore;
     static const bool trace_idle = hysterically_debugged;
     static const bool simulate_capacity = false;
-    static const unsigned int QUANTUM = 1000; // us
+    static const unsigned int QUANTUM = 100000; // us
 
-    typedef RR Criterion;
+    typedef GRR Criterion;
 };
 
 template<> struct Traits<Scheduler<Thread>>: public Traits<Build>
@@ -143,6 +145,20 @@ template<> struct Traits<Alarm>: public Traits<Build>
 template<> struct Traits<Address_Space>: public Traits<Build> {};
 
 template<> struct Traits<Segment>: public Traits<Build> {};
+
+template<> struct Traits<Monitor>: public Traits<Build>
+{
+    static const bool enabled = monitored;
+
+    static constexpr unsigned long SYSTEM_EVENTS[]                 = { ELAPSED_TIME, DEADLINE_MISSES, CPU_EXECUTION_TIME, THREAD_EXECUTION_TIME, RUNNING_THREAD };
+    static constexpr unsigned long SYSTEM_EVENTS_FREQUENCIES[]     = {            1,               1,                  1,                     1,              1 }; // in Hz
+
+    static constexpr unsigned long PMU_EVENTS[]                    = { INSTRUCTIONS_RETIRED, BRANCHES, CACHE_MISSES };
+    static constexpr unsigned long PMU_EVENTS_FREQUENCIES[]        = {                     1,        1,            1}; // in Hz
+
+    static constexpr unsigned long TRANSDUCER_EVENTS[]             = { CPU_VOLTAGE, CPU_TEMPERATURE };
+    static constexpr unsigned long TRANSDUCER_EVENTS_FREQUENCIES[] = {           1,               1 }; // in Hz
+};
 
 __END_SYS
 

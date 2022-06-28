@@ -73,21 +73,58 @@ Setup::Setup()
     db<Setup>(TRC) << "Setup(si=" << reinterpret_cast<void *>(si) << ",sp=" << CPU::sp() << ")" << endl;
     db<Setup>(INF) << "Setup:si=" << *si << endl;
 
+    if(si->bm.n_cpus > Traits<Machine>::CPUS)
+        si->bm.n_cpus = Traits<Machine>::CPUS;
+
     // Reserve memory for the FLAT_PAGE_TABLE if needed by hidding the respective memory from the system
     if(FLAT_PAGE_TABLE != Memory_Map::NOT_USED)
         si->bm.mem_top = FLAT_PAGE_TABLE - 1;
 
-    // Print basic facts about this EPOS instance
-    say_hi();
+    if(CPU::id() == 0) { // bootstrap CPU (BSP)
 
-    // Configure a flat memory model for the single task in the system
-    setup_flat_paging();
+        // Print basic facts about this EPOS instance
+        say_hi();
 
-    // Enable paging
-    enable_paging();
+        // Configure a flat memory model for the single task in the system
+        setup_flat_paging();
 
-    // Signalizes other CPUs that paging is up
-    paging_ready = true;
+        // Enable paging
+        enable_paging();
+
+        // Signalizes other CPUs that paging is up
+        paging_ready = true;
+
+        // Enable the Snoop Control Unit for SMP
+        if(Traits<System>::multicore)
+            scu()->enable();
+
+    } else { // additional CPUs (APs)
+
+        // Wait for the Boot CPU to setup page tables
+        while(!paging_ready);
+        enable_paging();
+
+    }
+
+    // Configure the Snoop Control Unit for SMP
+    if(Traits<System>::multicore) {
+        scu()->secure_invalidate();
+        CPU::actlr(CPU::actlr() | CPU::SMP); // enable SMP
+        CPU::actlr(CPU::actlr() | CPU::FW);  // enable the broadcasting of cache & TLB maintenance operations to other SMP cores
+        scu()->enable_cache_coherence();
+    }
+
+    // Configure GIC for SMP, set SYS_FLAGS to the address where secondary CPUS will start executing and then wake them up
+    // QEMU Bug: we already moved the vector table from Traits<Machine>::RESET to Memory_Map::VECTOR_TABLE and Traits<Machine>::RESET
+    //   (and SETUP as a whole will soon be part of the free memory for multitasking configurations), but QEMU puts non-BSP cores on halt in a loop
+    //   with "tst r1, r1", so the wake up address cannot be 0. A barrier at Machine::pre_init() ensures Traits<Machine>::RESET won't be overwritten
+    //   before all cores get there.
+    if(Traits<System>::multicore && (CPU::id() == 0)) {
+        gic_distributor()->init();
+        gic_cpu()->init();
+//        *reinterpret_cast<unsigned long *>(SYS_FLAGS) = Traits<Machine>::RESET;
+        gic_distributor()->smp_init(Traits<Machine>::CPUS);
+    }
 
     // SETUP ends here, so let's transfer control to next stage (INIT or APP)
     call_next();
@@ -239,24 +276,27 @@ void _entry()
 void _reset()
 {
     // Configure a stack for SVC mode, which will be used until the first Thread is created
+    CPU::int_disable(); // interrupts will be re-enabled at init_end
     CPU::mode(CPU::MODE_SVC); // enter SVC mode (with interrupts disabled)
     CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE * (CPU::id() + 1) - sizeof(long));
 
-    // After a reset, we copy the vector table to 0x0000 to get a cleaner memory map (it is originally at 0x8000)
-    // An alternative would be to set vbar address via mrc p15, 0, r1, c12, c0, 0
-    CPU::r0(reinterpret_cast<CPU::Reg>(&_entry)); // load r0 with the source pointer
-    CPU::r1(Memory_Map::VECTOR_TABLE); // load r1 with the destination pointer
+    if(CPU::id() == 0) {
+        // After a reset, we copy the vector table to 0x0000 to get a cleaner memory map (it is originally at 0x8000)
+        // An alternative would be to set vbar address via mrc p15, 0, r1, c12, c0, 0
+        CPU::r0(reinterpret_cast<CPU::Reg>(&_entry)); // load r0 with the source pointer
+        CPU::r1(Memory_Map::VECTOR_TABLE); // load r1 with the destination pointer
 
-    // Copy the first 32 bytes
-    CPU::ldmia(); // load multiple registers from the memory pointed by r0 and auto-increment it accordingly
-    CPU::stmia(); // store multiple registers to the memory pointed by r1 and auto-increment it accordingly
+        // Copy the first 32 bytes
+        CPU::ldmia(); // load multiple registers from the memory pointed by r0 and auto-increment it accordingly
+        CPU::stmia(); // store multiple registers to the memory pointed by r1 and auto-increment it accordingly
 
-    // Repeat to copy the subsequent 32 bytes
-    CPU::ldmia();
-    CPU::stmia();
+        // Repeat to copy the subsequent 32 bytes
+        CPU::ldmia();
+        CPU::stmia();
 
-    // Clear the BSS (SETUP was linked to CRT0, but entry point didn't go through BSS clear)
-    Machine::clear_bss();
+        // Clear the BSS (SETUP was linked to CRT0, but entry point didn't go through BSS clear)
+        Machine::clear_bss();
+    }
 
     // Set VBAR to point to the relocated the vector table
     CPU::vbar(Memory_Map::VECTOR_TABLE);
@@ -274,7 +314,5 @@ void _reset()
 
 void _setup()
 {
-    CPU::int_disable(); // interrupts will be re-enabled at init_end
-
     Setup setup;
 }

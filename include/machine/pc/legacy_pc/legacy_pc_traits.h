@@ -14,6 +14,9 @@ template<> struct Traits<Machine>: public Traits<Machine_Common>
 {
     static const unsigned int NOT_USED          = 0xffffffff;
 
+    static const bool cpus_use_local_timer      = false;
+    static const unsigned int CPUS              = Traits<Build>::CPUS;
+
     // Physical Memory
     static const unsigned int RAM_BASE          = 0x00000000;
     static const unsigned int RAM_TOP           = 0x40000000; 	// 1 GB (max 1792 MB)

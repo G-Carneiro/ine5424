@@ -11,6 +11,9 @@ class CPU: protected CPU_Common
 {
     friend class Init_System; // for CPU::init()
 
+private:
+    static const bool multicore = Traits<System>::multicore;
+
 public:
     // CPU Native Data Types
     using CPU_Common::Reg8;
@@ -212,8 +215,10 @@ public:
     static Reg fr() { Reg r; ASM("mv %0, a0" :  "=r"(r)); return r; }
     static void fr(Reg r) {  ASM("mv a0, %0" : : "r"(r) :); }
 
-    static unsigned int id() { return 0; }
-    static unsigned int cores() { return 1; }
+    static unsigned int id() { return multicore ? mhartid() : 0; }
+    static unsigned int cores() { return Traits<Build>::CPUS; }
+
+    static void smp_barrier(unsigned long cores = CPU::cores()) { CPU_Common::smp_barrier<&finc>(cores, id()); }
 
     using CPU_Common::clock;
     using CPU_Common::min_clock;
@@ -236,40 +241,64 @@ public:
     static T tsl(volatile T & lock) {
         register T old;
         register T one = 1;
-        ASM("1: lr.w    %0, (%1)        \n"
-            "   sc.w    t3, %2, (%1)    \n"
-            "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&lock), "r"(one) : "t3", "cc", "memory");
+        if(sizeof(T) == sizeof(Reg32))
+            ASM("1: lr.w    %0, (%1)        \n"
+                "   sc.w    t3, %2, (%1)    \n"
+                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&lock), "r"(one) : "t3", "cc", "memory");
+        else
+            ASM("1: lr.d    %0, (%1)        \n"
+                "   sc.d    t3, %2, (%1)    \n"
+                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&lock), "r"(one) : "t3", "cc", "memory");
         return old;
     }
 
     template<typename T>
     static T finc(volatile T & value) {
         register T old;
-        ASM("1: lr.w    %0, (%1)        \n"
-            "   addi    %0, %0, 1       \n"
-            "   sc.w    t3, %0, (%1)    \n"
-            "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+        if(sizeof(T) == sizeof(Reg32))
+            ASM("1: lr.w    %0, (%1)        \n"
+                "   addi    %0, %0, 1       \n"
+                "   sc.w    t3, %0, (%1)    \n"
+                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+        else
+            ASM("1: lr.d    %0, (%1)        \n"
+                "   addi    %0, %0, 1       \n"
+                "   sc.d    t3, %0, (%1)    \n"
+                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
         return old - 1;
     }
 
     template<typename T>
     static T fdec(volatile T & value) {
         register T old;
-        ASM("1: lr.w    %0, (%1)        \n"
-            "   addi    %0, %0, -1      \n"
-            "   sc.w    t3, %0, (%1)    \n"
-            "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+        if(sizeof(T) == sizeof(Reg32))
+            ASM("1: lr.w    %0, (%1)        \n"
+                "   addi    %0, %0, -1      \n"
+                "   sc.w    t3, %0, (%1)    \n"
+                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+        else
+            ASM("1: lr.d    %0, (%1)        \n"
+                "   addi    %0, %0, -1      \n"
+                "   sc.d    t3, %0, (%1)    \n"
+                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
         return old + 1;
     }
 
     template <typename T>
     static T cas(volatile T & value, T compare, T replacement) {
         register T old;
-        ASM("1: lr.w    %0, (%1)        \n"
-            "   bne     %0, %2, 2f      \n"
-            "   sc.w    t3, %3, (%1)    \n"
-            "   bnez    t3, 1b          \n"
-            "2:                         \n" : "=&r"(old) : "r"(&value), "r"(compare), "r"(replacement) : "t3", "cc", "memory");
+        if(sizeof(T) == sizeof(Reg32))
+            ASM("1: lr.w    %0, (%1)        \n"
+                "   bne     %0, %2, 2f      \n"
+                "   sc.w    t3, %3, (%1)    \n"
+                "   bnez    t3, 1b          \n"
+                "2:                         \n" : "=&r"(old) : "r"(&value), "r"(compare), "r"(replacement) : "t3", "cc", "memory");
+        else
+            ASM("1: lr.d    %0, (%1)        \n"
+                "   bne     %0, %2, 2f      \n"
+                "   sc.d    t3, %3, (%1)    \n"
+                "   bnez    t3, 1b          \n"
+                "2:                         \n" : "=&r"(old) : "r"(&value), "r"(compare), "r"(replacement) : "t3", "cc", "memory");
         return old;
     }
 

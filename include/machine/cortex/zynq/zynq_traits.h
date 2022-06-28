@@ -20,6 +20,9 @@ template<> struct Traits<Machine>: public Traits<Machine_Common>
 {
     static const unsigned int NOT_USED          = 0xffffffff;
 
+    static const bool cpus_use_local_timer      = false;
+    static const unsigned int CPUS              = Traits<Build>::CPUS;
+
     // Physical Memory
     // Using only DDR memory for data, OCM doesn't support exclusive accesses needed for atomic operations. The vector table must be placed at 0x00000000.
     static const unsigned int RAM_BASE          = 0x00000000;

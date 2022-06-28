@@ -40,6 +40,10 @@ void IC::dispatch()
     if((id != INT_SYS_TIMER) || Traits<IC>::hysterically_debugged)
         db<IC>(TRC) << "IC::dispatch(i=" << id << ")" << endl;
 
+    // IPIs must be acknowledged before calling the ISR, because in RISC-V, MIP set bits will keep on triggering interrupts until they are cleared
+    if(id == INT_RESCHEDULER)
+        IC::ipi_eoi(id);
+
     // MIP.MTI is a direct logic on (MTIME == MTIMECMP) and reseting the Timer seems to be the only way to clear it
     if(id == INT_SYS_TIMER)
         Timer::reset();
@@ -59,6 +63,7 @@ void IC::int_not(Interrupt_Id id)
 
 void IC::exception(Interrupt_Id id)
 {
+    CPU::Reg core = CPU::id();
     CPU::Reg epc = CPU::mepc();
     CPU::Reg sp = CPU::sp();
     CPU::Reg status = CPU::mstatus();
@@ -66,7 +71,7 @@ void IC::exception(Interrupt_Id id)
     CPU::Reg tval = CPU::mtval();
     Thread * thread = Thread::self();
 
-    db<IC,System>(WRN) << "IC::Exception(" << id << ") => {" << hex << "thread=" << thread << ",epc=" << epc << ",sp=" << sp << ",status=" << status << ",cause=" << cause << ",tval=" << tval << "}" << dec;
+    db<IC,System>(WRN) << "IC::Exception(" << id << ") => {" << hex << "core=" << core << ",thread=" << thread << ",epc=" << epc << ",sp=" << sp << ",status=" << status << ",cause=" << cause << ",tval=" << tval << "}" << dec;
 
     switch(id) {
     case 0: // unaligned instruction

@@ -66,7 +66,8 @@ Setup::Setup()
     db<Setup>(INF) << "Setup:si=" << *si << endl;
 
     // Print basic facts about this EPOS instance
-    say_hi();
+    if(CPU::id() == 0)
+        say_hi();
 
     // SETUP ends here, so let's transfer control to the next stage (INIT or APP)
     call_next();
@@ -126,9 +127,10 @@ void _entry() // machine mode
     CPU::mies(CPU::MSI);                                // enable interrupts at CLINT so IPI and timer can be triggered
     CLINT::mtvec(CLINT::DIRECT, _int_entry);            // setup a preliminary machine mode interrupt handler pointing it to _int_entry
 
-    CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE - sizeof(long)); // set this hart stack
+    CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE * (CPU::id() + 1) - sizeof(long)); // set this hart stack (the first stack is reserved for _int_m2s)
 
-    Machine::clear_bss();
+    if(CPU::id() == 0)
+        Machine::clear_bss();
 
     CPU::mstatus(CPU::MPP_M);                           // stay in machine mode at mret
 

@@ -8,13 +8,21 @@ void Machine::pre_init(System_Info * si)
 {
     Engine::pre_init();
 
+    // We don't know which core will get here first, so smp_barrier_init() must be idempotent
+    if(multicore) {
+        smp_barrier_init(si->bm.n_cpus);
+        CPU::smp_barrier();
+    }
+
     if(CPU::id() == 0)
         Display::init();
 
     db<Init, Machine>(TRC) << "Machine::pre_init()" << endl;
 
-    if(Traits<IC>::enabled)
-        IC::init();
+    if(CPU::id() == 0) {
+        if(Traits<IC>::enabled)
+            IC::init();
+    }
 }
 
 void Machine::init()

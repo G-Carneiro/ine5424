@@ -10,6 +10,7 @@ __BEGIN_SYS
 class ARMv7: protected CPU_Common
 {
 protected:
+    static const bool multicore = Traits<System>::multicore;
     static const bool save_fpu  = Traits<FPU>::enabled && !Traits<FPU>::user_save;
 
 public:
@@ -408,7 +409,6 @@ public:
 
         static void pop(bool interrupt = false, bool stay_in_svc = true);
         static void push(bool interrupt = false, bool stay_in_svc = true);
-        static void first_dispatch() __attribute__((naked));
 
         friend OStream & operator<<(OStream & os, const Context & c) {
             os << hex
@@ -457,11 +457,26 @@ public:
 
     using ARMv7::halt;
 
-    static unsigned int id() { return 0; }
+    static unsigned int id() {
+        if(multicore) {
+            Reg id;
+            ASM("mrc p15, 0, %0, c0, c0, 5" : "=r"(id) : : );
+            return id & 0x3;
+        } else
+            return 0;
+    }
 
-    static unsigned int cores() { return 1; }
+    static unsigned int cores() {
+        if(multicore && (Traits<Build>::MODEL != Traits<Build>::Raspberry_Pi3)) {
+            Reg n;
+            ASM("mrc p15, 4, %0, c15, c0, 0 \t\n\
+                 ldr %0, [%0, #0x004]" : "=r"(n) : : );
+            return (n & 0x3) + 1;
+        } else
+            return Traits<Build>::CPUS;
+    }
 
-    static void smp_barrier(unsigned int cores = ARMv7_A::cores()) {}
+    static void smp_barrier(unsigned int cores = ARMv7_A::cores()) { if(multicore) CPU_Common::smp_barrier<&finc>(cores, id()); }
 
     static void fpu_enable() {
         // This code assumes a compilation with mfloat-abi=hard and does not care for context switches
@@ -552,7 +567,7 @@ inline void ARMv7_A::Context::push(bool interrupt, bool stay_in_svc)
          ASM("adr r12, 1f");                    // calculate the return address using the saved r12 as a temporary
          ASM("str r12, [sp, #56]");             // overwrite PC with the calculated address
          psr_to_tmp();
-         ASM("push {r12}");			// push PSR
+         ASM("push {r12}");                     // push PSR
          if(save_fpu)
              fpu_save();
     }

@@ -287,16 +287,17 @@ public:
     static bool int_disabled() { return cpsr() & (FLAG_F | FLAG_I); }
 
     using ARMv7_A::halt;
+    using ARMv7_A::sev;
 
     static unsigned int id() {
-        Reg32 id;
-        ASM("mrs %0, mpidr_el1" : "=r"(id) : : );
-        return id & 0x3;
+        if(multicore) {
+            Reg32 id;
+            ASM("mrs %0, mpidr_el1" : "=r"(id) : : );
+            return id & 0x3;
+        } else
+            return 0;
     }
-
-    static unsigned int cores() { return 1; }
-
-    static void smp_barrier(unsigned int cores = ARMv8_A::cores());
+    static unsigned int cores() { return Traits<Build>::CPUS; }
 
     static void fpu_save();
     static void fpu_restore();
@@ -547,13 +548,36 @@ public:
     using Base::id;
     using Base::cores;
 
-    using CPU_Common::tsl; 	// TODO
-    using CPU_Common::finc;	// TODO
-    using CPU_Common::fdec;	// TODO
-    using CPU_Common::cas;	// TODO
- 
-    static void smp_barrier(unsigned long cores = cores()) { CPU_Common::smp_barrier<&finc>(cores, id()); }
+    static void smp_barrier(unsigned int cores = ARMv8_A::cores()) { if(multicore) CPU_Common::smp_barrier<&finc>(cores, id()); }
 
+    template<typename T>
+    static T tsl(volatile T & lock) {
+        register T old = 0;
+        register T one = 1;
+        ASM("casal %0, %1, [%2]" : "=r"(old) : "r"(one), "r"(&lock) : "memory");
+        return lock;
+    }
+
+    template<typename T>
+    static T finc(volatile T & value) {
+        register T old = 1;
+        ASM("ldaddal %0, %0, [%1]" : "=&r"(old) : "r"(&value) : "memory");
+        return old;
+    }
+
+    template<typename T>
+    static T fdec(volatile T & value) {
+        register T old = -1;
+        ASM("ldaddal %0, %0, [%1]" : "=&r"(old) : "r"(&value) : "memory");
+        return old;
+    }
+
+    template <typename T>
+    static T cas(volatile T & value, T compare, T replacement) {
+        ASM("casal %0, %1, [%2]" : "=&r"(compare) : "r"(replacement), "r"(&value) : "memory");
+        return compare;
+    }
+ 
     static void switch_context(Context ** o, Context * n);
 
     template<typename ... Tn>

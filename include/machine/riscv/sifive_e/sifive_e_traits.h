@@ -18,6 +18,9 @@ template<> struct Traits<Machine>: public Traits<Machine_Common>
 {
 public:
     static const unsigned int NOT_USED          = 0xffffffff;
+    
+    static const bool cpus_use_local_timer      = false;
+    static const unsigned int CPUS              = Traits<Build>::CPUS;
 
     // Physical Memory
     static const unsigned int ROM_BASE          = 0x20400000;                           // 512 MB
@@ -45,9 +48,9 @@ public:
     static const unsigned int SYS               = 0xff800000;                           // 4 GB - 8 MB
 
     // Default Sizes and Quantities
-    static const unsigned int MAX_THREADS       = 7;
-    static const unsigned int STACK_SIZE        = 640;
-    static const unsigned int HEAP_SIZE         = 512;
+    static const unsigned int MAX_THREADS       = 6;
+    static const unsigned int STACK_SIZE        = 768;
+    static const unsigned int HEAP_SIZE         = 1024;
 };
 
 template <> struct Traits<IC>: public Traits<Machine_Common>
