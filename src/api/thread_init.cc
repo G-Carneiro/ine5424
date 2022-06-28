@@ -12,11 +12,19 @@ extern "C" { void __epos_app_entry(); }
 void Thread::init()
 {
     db<Init, Thread>(TRC) << "Thread::init()" << endl;
+
+    // Install an interrupt handler to receive forced reschedules
+    if (smp && (CPU::id() == 0))
+        IC::int_vector(IC::INT_RESCHEDULER, rescheduler);  // if an eoi handler is needed, then it was already installed at IC::init()
+
     CPU::smp_barrier();
 
-    if (CPU::mhartid() == 0) {
-        Criterion::init();
+    if (smp)
+        IC::enable(IC::INT_RESCHEDULER);
 
+    Criterion::init();
+
+    if (CPU::mhartid() == 0) {
         typedef int (Main)();
 
         // If EPOS is a library, then adjust the application entry point to __epos_app_entry, which will directly call main().
@@ -43,14 +51,7 @@ void Thread::init()
         _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
 
     // No more interrupts until we reach init_end
-    // CPU::int_disable();
-    // Install an interrupt handler to receive forced reschedules
-    if (smp) {
-        if(CPU::mhartid() == 0)
-            IC::int_vector(IC::INT_RESCHEDULER, rescheduler);
-        CPU::int_disable();
-        IC::enable(IC::INT_RESCHEDULER);
-    }
+    CPU::int_disable();
 
     CPU::smp_barrier();
     // Transition from CPU-based locking to thread-based locking

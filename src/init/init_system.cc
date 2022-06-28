@@ -20,10 +20,10 @@ public:
         // garante que todas CPUs estejam no mesmo ponto
         CPU::smp_barrier();
 
-        db<Init>(INF) << "Init:si=" << *System::info() << endl;
-
         // somente a hart 0 precisa inicializar o sistema completamente.
         if (CPU::mhartid() == 0) {
+            db<Init>(INF) << "Init:si=" << *System::info() << endl;
+
             db<Init>(INF) << "Initializing the architecture: " << endl;
             CPU::init();
 
@@ -44,11 +44,14 @@ public:
             db<Init>(INF) << "Initializing the machine: " << endl;
             Machine::init();
 
-//            CPU::smp_barrier(); // sinaliza para demais CPUs
+            CPU::smp_barrier(); // signalizes "machine ready" to other CPUs
         } else {
-//            CPU::smp_barrier();
+            CPU::smp_barrier(); // waits until the bootstrap CPU signalizes "machine ready"
 
+            db<Init>(INF) << "Initializing the CPU: " << endl;
             CPU::init();
+
+            db<Init>(INF) << "Initializing the machine: " << endl;
             Timer::init();
         }
 
@@ -59,7 +62,7 @@ public:
         if (CPU::mhartid() == 0) {
             // Randomize the Random Numbers Generator's seed
             if (Traits<Random>::enabled) {
-                db<Init>(INF) << "Randomizing the Random Numbers Generator's seed." << endl;
+                db<Init>(TRC) << "Randomizing the Random Numbers Generator's seed." << endl;
                 if (Traits<TSC>::enabled)
                     Random::seed(TSC::time_stamp());
 

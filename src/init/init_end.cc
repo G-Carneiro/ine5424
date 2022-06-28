@@ -23,8 +23,8 @@ public:
             return;
         }
 
-        if(Memory_Map::BOOT_STACK != Memory_Map::NOT_USED)
-            MMU::free(Memory_Map::BOOT_STACK, MMU::pages(Traits<Machine>::STACK_SIZE));
+        if((Memory_Map::BOOT_STACK != Memory_Map::NOT_USED) && (CPU::id() == 0))
+            MMU::free(Memory_Map::BOOT_STACK, MMU::pages(Traits<Machine>::CPUS * Traits<Machine>::STACK_SIZE));
 
         db<Init>(INF) << "INIT ends here!" << endl;
 
@@ -35,11 +35,13 @@ public:
 
         db<Init, Thread>(INF) << "Dispatching the first thread: " << first << endl;
 
+        // This barrier is particularly important, since afterwards the temporary stacks
+        // and data structures established by SETUP and announced as "free memory" will indeed be
+        // available to user threads.
         CPU::smp_barrier();
 
         // Interrupts have been disable at Thread::init() and will be reenabled by CPU::Context::load()
         // but we first reset the timer to avoid getting a time interrupt during load()
-        // TODO: somente a hart 0?
         if(Traits<Timer>::enabled)
             Timer::reset();
 

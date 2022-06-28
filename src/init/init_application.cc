@@ -19,6 +19,13 @@ public:
     Init_Application() {
         db<Init>(TRC) << "Init_Application()" << endl;
 
+        // Only the bootstrap CPU runs INIT_APPLICATION
+        CPU::smp_barrier();
+        if(CPU::id() != 0) {
+            CPU::smp_barrier();
+            return;
+        }
+
         // Initialize Application's heap
         db<Init>(INF) << "Initializing application's heap: " << endl;
         if(Traits<System>::multiheap) { // heap in data segment arranged by SETUP
