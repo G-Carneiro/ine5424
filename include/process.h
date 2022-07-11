@@ -32,6 +32,7 @@ class Thread
 protected:
     static const bool preemptive = Traits<Thread>::Criterion::preemptive;
     static const bool reboot = Traits<System>::reboot;
+    static const bool smp = Traits<System>::multicore;
 
     static const unsigned int QUANTUM = Traits<Thread>::QUANTUM;
     static const unsigned int STACK_SIZE = Traits<Application>::STACK_SIZE;
@@ -104,8 +105,6 @@ protected:
 
     static Thread * volatile running() { return _scheduler.chosen(); }
 
-    static void lock() { CPU::int_disable(); }
-    static void unlock() { CPU::int_enable(); }
     static void lock(Spin * lock = &_lock) {
         CPU::int_disable();
         if(Traits<Thread>::smp)
@@ -117,7 +116,7 @@ protected:
             lock->release();
         CPU::int_enable();
     }
-    static bool locked() { return CPU::int_disabled(); }
+    static bool locked() { return (smp) ? _lock.taken() : CPU::int_disabled(); }
 
     static void sleep(Queue * q);
     static void wakeup(Queue * q);
