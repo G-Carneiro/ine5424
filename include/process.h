@@ -9,7 +9,11 @@
 #include <utility/handler.h>
 #include <scheduler.h>
 
-extern "C" { void __exit(); }
+extern "C" {
+    void __exit();
+    void _lock_heap();
+    void _unlock_heap();
+}
 
 __BEGIN_SYS
 
@@ -22,6 +26,8 @@ class Thread
     friend class Alarm;                 // for lock()
     friend class System;                // for init()
     friend class IC;                    // for link() for priority ceiling
+    friend void ::_lock_heap();         // for lock()
+    friend void ::_unlock_heap();       // for unlock()
 
 protected:
     static const bool preemptive = Traits<Thread>::Criterion::preemptive;
@@ -100,6 +106,17 @@ protected:
 
     static void lock() { CPU::int_disable(); }
     static void unlock() { CPU::int_enable(); }
+    static void lock(Spin * lock = &_lock) {
+        CPU::int_disable();
+        if(Traits<Thread>::smp)
+            lock->acquire();
+    }
+
+    static void unlock(Spin * lock = &_lock) {
+        if(Traits<Thread>::smp)
+            lock->release();
+        CPU::int_enable();
+    }
     static bool locked() { return CPU::int_disabled(); }
 
     static void sleep(Queue * q);
@@ -107,6 +124,8 @@ protected:
     static void wakeup_all(Queue * q);
 
     static void reschedule();
+    static void reschedule(unsigned int cpu);
+    static void rescheduler(IC::Interrupt_Id interrupt);
     static void time_slicer(IC::Interrupt_Id interrupt);
 
     static void dispatch(Thread * prev, Thread * next, bool charge = true);
@@ -127,6 +146,7 @@ protected:
     static volatile unsigned int _thread_count;
     static Scheduler_Timer * _timer;
     static Scheduler<Thread> _scheduler;
+    static Spin _lock;
 };
 
 
